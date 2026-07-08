@@ -1278,7 +1278,7 @@ async function renderMetricMapTab() {
     setStatus("Laddar karta...");
     main.innerHTML = `
         <section class="tab-panel active" id="map">
-            <div class="info">Välj tema och nyckeltal för att se hur länets kommuner skiljer sig geografiskt. Kartan är en schematisk länskarta byggd direkt i filen, så den fungerar utan externa karttiles.</div>
+            <div class="info">Välj tema och nyckeltal för att se hur länets kommuner skiljer sig geografiskt. Kartan är en riktig OpenStreetMap-karta med kommunmarkörer.</div>
             <article class="comparison">
                 <div class="map-toolbar">
                     <div class="field">
@@ -1452,68 +1452,63 @@ function renderMetricMap(rows, metricDef) {
         mapEl.innerHTML = `<div class="loading">Ingen kartdata att visa.</div>`;
         return;
     }
+    if (typeof L === "undefined") {
+        mapEl.innerHTML = `<div class="loading error">Kartan kunde inte laddas.</div>`;
+        return;
+    }
 
     const values = mappableRows.map(row => row.latest.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const coords = Object.values(municipalityCoordinates);
-    const lats = coords.map(coord => coord[0]);
-    const lons = coords.map(coord => coord[1]);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLon = Math.min(...lons);
-    const maxLon = Math.max(...lons);
-    const project = ([lat, lon]) => {
-        const x = 10 + ((lon - minLon) / (maxLon - minLon || 1)) * 80;
-        const y = 88 - ((lat - minLat) / (maxLat - minLat || 1)) * 76;
-        return [x, y];
+    mapEl.innerHTML = `<div class="metric-map-host" id="metric-map-leaflet"></div>`;
+    const mapHost = document.getElementById("metric-map-leaflet");
+    metricLeafletMap = L.map(mapHost, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        preferCanvas: false
+    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        minZoom: 3,
+        detectRetina: true,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(metricLeafletMap);
+
+    const bounds = L.latLngBounds([]);
+    mappableRows.forEach(row => {
+        const ratio = normalizedRatio(row.latest.value, min, max);
+        const radius = row.selected ? 15 : 8 + ratio * 11;
+        const marker = L.circleMarker(row.coords, {
+            radius,
+            color: row.selected ? "#003f70" : "#ffffff",
+            weight: row.selected ? 3 : 2,
+            fillColor: metricMapColor(row.latest.value, min, max, metricDef),
+            fillOpacity: 0.9
+        }).addTo(metricLeafletMap);
+        marker.bindPopup(metricMapPopup(row, metricDef));
+        marker.bindTooltip(`${row.title}: ${formatMaybe(row.latest?.value, metricDef)}`, {
+            direction: "top",
+            offset: [0, -8],
+            opacity: 0.92
+        });
+        bounds.extend(row.coords);
+    });
+
+    const fitMap = () => {
+        if (!metricLeafletMap || !bounds.isValid()) return;
+        metricLeafletMap.invalidateSize({ pan: false });
+        metricLeafletMap.fitBounds(bounds, { padding: [42, 42], maxZoom: 10 });
     };
-    const outlineOrder = ["0767", "0781", "0765", "0763", "0761", "0760", "0780", "0764", "0767"];
-    const outlinePath = outlineOrder
-        .filter(id => municipalityCoordinates[id])
-        .map((id, index) => {
-            const [x, y] = project(municipalityCoordinates[id]);
-            return `${index ? "L" : "M"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-        })
-        .join(" ");
-
-    const points = [...mappableRows]
-        .sort((a, b) => b.latest.value - a.latest.value)
-        .map(row => {
-            const [x, y] = project(row.coords);
-            const ratio = normalizedRatio(row.latest.value, min, max);
-            const radius = row.selected ? 5.4 : 3.8 + ratio * 3.2;
-            const anchor = x > 58 ? "end" : "start";
-            const labelX = x > 58 ? -radius - 1.7 : radius + 1.7;
-            const label = escapeHtml(row.title);
-            const tooltip = escapeHtml(`${row.title}
-${metricDef.title}: ${formatMaybe(row.latest?.value, metricDef)}
-Placering: ${row.rank || "-"}
-Mätår: ${row.latest?.period || "-"}`);
-            return `
-                <g transform="translate(${x.toFixed(2)} ${y.toFixed(2)})">
-                    <circle r="${radius.toFixed(2)}" fill="${metricMapColor(row.latest.value, min, max, metricDef)}" stroke="${row.selected ? "#003f70" : "#ffffff"}" stroke-width="${row.selected ? 1.2 : 0.8}">
-                        <title>${tooltip}</title>
-                    </circle>
-                    <text x="${labelX.toFixed(2)}" y="-1.1" text-anchor="${anchor}" font-size="3.1" font-weight="${row.selected ? 900 : 700}" fill="#253342">${label}</text>
-                    <text x="${labelX.toFixed(2)}" y="2.4" text-anchor="${anchor}" font-size="2.5" fill="#536273">${formatMaybe(row.latest?.value, metricDef)}</text>
-                </g>`;
-        })
-        .join("");
-
-    mapEl.innerHTML = `
-        <svg viewBox="0 0 100 100" role="img" aria-label="Schematisk karta över Kronobergs kommuner" style="display:block;width:100%;height:100%;background:#eef8fb;">
-            <defs>
-                <filter id="metric-map-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="1.2" stdDeviation="1.3" flood-color="#0b3b55" flood-opacity="0.16"/>
-                </filter>
-            </defs>
-            <rect x="2" y="2" width="96" height="96" rx="4" fill="#f7fcff" stroke="#cbdde8"/>
-            <path d="${outlinePath}" fill="#dceff5" stroke="#94b8c8" stroke-width="1.1" stroke-linejoin="round" filter="url(#metric-map-shadow)"/>
-            <path d="${outlinePath}" fill="none" stroke="#ffffff" stroke-width="0.45" stroke-linejoin="round"/>
-            ${points}
-        </svg>`;
+    window.requestAnimationFrame(fitMap);
+    window.setTimeout(fitMap, 180);
+    window.setTimeout(fitMap, 520);
+    if (typeof ResizeObserver !== "undefined") {
+        metricResizeObserver = new ResizeObserver(() => metricLeafletMap?.invalidateSize({ pan: false }));
+        metricResizeObserver.observe(mapHost);
+    }
 }
+
+
 
 function metricMapPopup(row, metricDef) {
     return `
@@ -1647,6 +1642,8 @@ function populationShareSection(tabId) {
             <div class="meta">Kommun- och länsbefolkning: SCB via Kolada, KPI N01951. Riket: SCB:s senaste nyckeltal för maj 2026, 10 608 128 invånare.</div>
         </article>`;
 }
+
+
 
 function renderDependencyRatio(tabId, bundles) {
     const tbody = document.getElementById(`${tabId}-dependency-ratio-table`);
@@ -1930,6 +1927,8 @@ function renderPopulationShares(tabId, populationBundle) {
         </tr>
     `).join("");
 }
+
+
 
 async function renderBathingWaterTab() {
     const main = document.getElementById("main");
