@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Kronobergs län - livejämförelser</title>
+<title>Dashboard Jönköpings län - livejämförelser</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -40,7 +40,8 @@
         background: var(--panel);
         border-top: 5px solid var(--primary);
         box-shadow: var(--shadow);
-        padding: 22px 26px;
+        padding: 18px 26px 20px;
+        position: relative;
         text-align: center;
     }
 
@@ -58,7 +59,7 @@
     }
 
     .selected-municipality {
-        margin-top: 14px;
+        margin-top: 10px;
         color: var(--primary-dark);
         font-size: 1.25rem;
         font-weight: 900;
@@ -68,9 +69,57 @@
         display: flex;
         flex-wrap: wrap;
         gap: 14px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 12px;
+    }
+
+    .topbar-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
         align-items: end;
         justify-content: center;
-        margin-top: 18px;
+    }
+
+    .header-map-card {
+        width: 300px;
+        min-width: 300px;
+        position: absolute;
+        right: 26px;
+        bottom: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #c9d4df;
+        border-radius: 8px;
+        background: #f8fbfd;
+        padding: 8px;
+    }
+
+    .header-county-map {
+        width: 100%;
+        height: 172px;
+        display: block;
+    }
+
+    .header-map-path {
+        fill: #f6f8f8;
+        stroke: #697781;
+        stroke-width: 0.42;
+        vector-effect: non-scaling-stroke;
+        cursor: pointer;
+        transition: fill 0.15s ease, stroke 0.15s ease, filter 0.15s ease;
+    }
+
+    .header-map-path:hover {
+        fill: #e3edf2;
+    }
+
+    .header-map-path.selected {
+        fill: #0f766e;
+        stroke: #074f49;
+        filter: drop-shadow(0 2px 3px rgba(15, 118, 110, 0.28));
     }
 
     .field {
@@ -84,16 +133,21 @@
         font-size: 0.88rem;
     }
 
-    select, button {
+    select, button, input {
         font: inherit;
     }
 
-    select {
+    select, input[type="number"] {
         min-width: 250px;
         border: 1px solid #c9d4df;
         border-radius: 6px;
         background: white;
         padding: 10px 12px;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: var(--primary);
     }
 
     .status-pill {
@@ -202,8 +256,57 @@
         margin-top: 5px;
     }
 
-    .delta.good { color: var(--good); }
-    .delta.bad { color: var(--bad); }
+    .good, .delta.good { color: var(--good); }
+    .bad, .delta.bad { color: var(--bad); }
+
+    .simulator-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .simulator-controls {
+        display: grid;
+        gap: 12px;
+    }
+
+    .simulator-control {
+        display: grid;
+        gap: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .simulator-control:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .simulator-control-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: baseline;
+    }
+
+    .simulator-control-value {
+        color: var(--primary-dark);
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .simulator-summary {
+        display: grid;
+        gap: 14px;
+    }
+
+    .simulator-table td:nth-child(2),
+    .simulator-table td:nth-child(3),
+    .simulator-table td:nth-child(4) {
+        text-align: right;
+        white-space: nowrap;
+    }
 
     .compare-line {
         display: grid;
@@ -446,6 +549,140 @@
         width: 100%;
         font-family: inherit;
         background: #eef8fb;
+    }
+
+    .atk-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(310px, .75fr);
+        gap: 18px;
+        align-items: stretch;
+    }
+
+    .atk-map {
+        height: 500px;
+        min-height: 500px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #eef8fb;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .atk-map-host {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .atk-map .leaflet-container {
+        height: 100%;
+        width: 100%;
+        font-family: inherit;
+        background: #eef8fb;
+    }
+
+    .atk-facts {
+        display: grid;
+        gap: 12px;
+    }
+
+    .atk-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: end;
+        margin-bottom: 14px;
+    }
+
+    .secondary-button {
+        border: 1px solid #b7c7d7;
+        border-radius: 6px;
+        background: #fff;
+        color: var(--primary-dark);
+        cursor: pointer;
+        font-weight: 800;
+        padding: 10px 14px;
+    }
+
+    .secondary-button:hover,
+    .secondary-button:focus {
+        border-color: var(--primary);
+        background: #f4f9fd;
+    }
+
+    .atk-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .atk-mini-stat {
+        border-left: 5px solid var(--primary);
+        background: #f4f9fd;
+        border-radius: 6px;
+        padding: 12px 14px;
+    }
+
+    .atk-mini-stat strong {
+        display: block;
+        color: var(--primary-dark);
+        font-size: 1.35rem;
+        line-height: 1.1;
+        margin-bottom: 4px;
+    }
+
+    .atk-feature-info {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        padding: 12px 14px;
+        min-height: 74px;
+        color: var(--muted);
+    }
+
+    .atk-feature-info strong {
+        color: var(--primary-dark);
+    }
+
+    .atk-fact {
+        border-left: 5px solid var(--primary);
+        background: #f4f9fd;
+        padding: 13px 14px;
+        border-radius: 6px;
+    }
+
+    .atk-fact strong {
+        display: block;
+        color: var(--primary-dark);
+        font-size: 1.02rem;
+        margin-bottom: 4px;
+    }
+
+    .atk-layer-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin: 4px 8px 4px 0;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e7f2fa;
+        font-weight: 800;
+        color: var(--primary-dark);
+    }
+
+    .atk-layer-pill::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--primary);
+    }
+
+    .atk-layer-pill.route::before {
+        border-radius: 3px;
+        background: #c04f15;
     }
 
     .commute-summary {
@@ -785,6 +1022,7 @@
     .status-dot.warning { background: var(--bad); }
     .status-dot.neutral { background: var(--muted); }
 
+
     .vehicle-split {
         display: grid;
         grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.85fr);
@@ -843,22 +1081,33 @@
     }
 
     @media (max-width: 1200px) {
-        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .vehicle-split { grid-template-columns: 1fr; }
         .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+        .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 1200px) {
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .header-map-card { position: static; transform: none; margin: 0 auto; }
     }
 
     @media (max-width: 720px) {
         .shell { padding: 10px; }
         header { padding: 18px; }
         .kpi-grid { grid-template-columns: 1fr; }
-        .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: 1fr; }
         .comparison-head { grid-template-columns: 1fr; }
         .selected-metric-title { grid-column: auto; }
         .compare-line { grid-template-columns: 1fr; }
-        .bath-layout, .commute-layout, .metric-map-layout, .map-toolbar { grid-template-columns: 1fr; }
-        .bath-map, .bath-map-host, .commute-map, .commute-map-host, .metric-map, .metric-map-host { min-height: 420px; height: 420px; }
-        select { min-width: 100%; width: 100%; }
+        .bath-layout, .commute-layout, .metric-map-layout, .map-toolbar, .atk-layout, .atk-summary-grid, .simulator-layout { grid-template-columns: 1fr; }
+        .bath-map, .bath-map-host, .commute-map, .commute-map-host, .metric-map, .metric-map-host, .atk-map, .atk-map-host { min-height: 420px; height: 420px; }
+        .topbar { min-height: 0; }
+        .topbar-controls { width: 100%; }
+        .header-map-card { position: static; transform: none; width: 100%; min-width: 0; height: 150px; }
+        .header-county-map { height: 132px; }
+        select, input[type="number"] { min-width: 100%; width: 100%; }
         .field { width: 100%; }
     }
 
@@ -1011,13 +1260,13 @@
 <body>
 <div class="shell">
     <header>
-        <h1>Dashboard Kronobergs län</h1>
+        <h1>Dashboard Jönköpings län</h1>
         <div class="source source-top">
             <strong>Källor:</strong>
-            Kolada · SCB · Migrationsverket · Arbetsförmedlingen · Trafikanalys · Havs- och vattenmyndigheten · Upphandlingsmyndigheten · Svenskt Näringsliv
+            Kolada · SCB · Nationella emissionsdatabasen · Migrationsverket · Arbetsförmedlingen · Trafikanalys · Havs- och vattenmyndigheten · Trafikverket · Jordbruksverket · Ekomatcentrum · Upphandlingsmyndigheten · Svenskt Näringsliv
         </div>
-        <p>Livehämtade nyckeltal för länets kommuner med jämförelser mot Kronobergs län och riket.</p>
-        <div class="selected-municipality">Vald huvudkommun: <span id="current-name">Växjö</span></div>
+        <p>Livehämtade nyckeltal för länets kommuner med jämförelser mot Höglandet, Jönköpings län och riket.</p>
+        <div class="selected-municipality">Vald huvudkommun: <span id="current-name">Sävsjö</span></div>
             <div class="header-sweden-map-card" aria-label="Placering i Sverige">
                 <svg class="header-sweden-map" viewBox="0 0 290 660" role="img" aria-label="Sverigekarta med vald kommun markerad">
                     <g>
@@ -1086,7 +1335,7 @@
                             <path class="header-sweden-path" data-id="0680" d="m 79,544.375 1.188,1 0.937,-1.438 1.625,-0.312 -0.437,0.937 0.75,3.313 2.187,0.875 0.313,-2.625 1,-0.875 -0.313,-0.875 0.688,-1.5 0.812,-0.375 0.688,-2.438 1.687,-0.875 2,0.313 1.188,-1.125 -0.875,-4.813 -1.5,-0.062 -1.188,0.437 -0.375,-2.125 0.75,-1.5 1.688,-0.75 0.187,-1.75 1,-0.25 -0.375,-4.25 -1.625,-0.687 -1.75,2.812 -0.5,1.938 -2.437,1.562 -1.75,3.063 -0.5,2.187 -0.25,2.688 -1.25,0.125 -0.75,0.562 -0.688,-0.5 0.25,-1.875 L 81,533.25 80.313,532.625 79.438,533.5 78.5,533.062 77.438,533.812 77.5,536 76.625,535.812 75.5,533.875 73.875,533.187 73.188,534.75 71.063,534.312 71,538 l -0.875,1.312 -0.125,1.313 0.688,1.812 -0.375,1.25 -1.188,0.563 -0.125,1 0.188,2.125 1.687,-0.688 1,0.563 0.938,-1.938 1.062,-0.875 1.5,0.375 1.438,-1.687 1,1.375 1.187,-0.125 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0682" d="m 85.25,548.75 0.313,-2.625 1,-0.875 -0.313,-0.875 0.688,-1.5 0.812,-0.375 0.688,-2.438 1.687,-0.875 2,0.313 1.188,-1.125 1.812,-0.938 0.875,-0.812 1.313,-0.188 0.625,0.563 1.437,-0.938 1.375,0.313 0.438,2.75 -1.625,1.125 0.437,0.937 -2.125,2.5 -0.875,2 1.375,0.688 -0.312,1.875 -0.125,2.187 0.187,1.813 -0.625,2.812 -1.687,-0.375 -1,-2.187 -1.688,-0.313 -0.875,0.875 -1.062,-0.25 L 90,551 l -1.562,0 -0.625,-1.5 -3.125,-0.438 0.562,-0.312 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0683" d="m 83.688,579.25 1.25,-0.688 1.375,-3.312 -1.5,-1.938 -0.25,-1.625 0.5,-0.75 0.125,-4.312 1.187,0 -0.312,-1.75 1,-0.625 0.5,-3.688 -0.875,-2.312 -0.5,-2.125 -1.188,0.375 -1.312,0.75 0.062,1.187 -0.687,0.938 -0.938,-0.688 -2.125,0.688 -0.687,-0.438 -1.063,0.688 -0.812,1 -1.188,1 -1.625,-0.5 -0.437,-0.688 -1.375,0.563 -0.063,1.187 -3.187,-0.25 -0.875,-0.187 -0.063,2.687 -0.75,1 0.5,0.875 1.125,-0.312 0.563,1.062 -0.563,1.125 0.625,2.063 1.813,0.25 1,2.625 1.5,-0.75 0.312,-1.125 2.25,-0.563 1.375,0.438 0.938,1.062 0.562,-0.437 1.438,2.437 0.187,1.938 1.063,2.5 1.125,0.625 z" aria-hidden="true"></path>
-                            <path class="header-sweden-path" data-id="0684" d="M 93.563,564.125 95,563.25 l 1.5,0 0.563,-1.625 0.187,-2.875 0.25,-3.688 -1.687,-0.375 -1,-2.187 -1.688,-0.313 -0.875,0.875 -1.062,-0.25 L 90,551 l -1.562,0 -2.438,1.125 0.188,4 0.5,2.125 0.875,2.312 -0.5,3.688 -1,0.625 0.312,1.75 2.5,-0.063 1.438,-0.312 0.25,-1.5 1,0.187 0.437,-0.625 1.563,-0.187 z" aria-hidden="true"></path>
+                            <path class="header-sweden-path selected" data-id="0684" d="M 93.563,564.125 95,563.25 l 1.5,0 0.563,-1.625 0.187,-2.875 0.25,-3.688 -1.687,-0.375 -1,-2.187 -1.688,-0.313 -0.875,0.875 -1.062,-0.25 L 90,551 l -1.562,0 -2.438,1.125 0.188,4 0.5,2.125 0.875,2.312 -0.5,3.688 -1,0.625 0.312,1.75 2.5,-0.063 1.438,-0.312 0.25,-1.5 1,0.187 0.437,-0.625 1.563,-0.187 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0685" d="m 107.438,549.687 2.062,0.188 1.563,1.125 1.125,-1.125 1.437,-0.063 1.125,-1.75 1.688,0.375 1.062,0.938 0.375,1.312 -0.75,0.75 -0.125,2.125 -1.375,-1 -1.187,0.938 0.125,2.5 -0.375,0.875 0.437,2.062 -1.187,0.813 0.125,2.437 0.812,0.625 0.813,2.125 -3.875,-1.562 -4,0.625 -1.125,-0.875 -1.5,0 1.062,1.625 -1.75,-0.125 -0.5,0.75 -1,0.687 -1.062,0.25 -0.5,1.125 -1.438,0.125 -0.375,-2.312 -1,-1.125 -1.625,-0.875 0.563,-1.625 0.187,-2.875 0.25,-3.688 0.625,-2.812 -0.187,-1.813 0.125,-2.187 0.312,-1.875 2,0.375 0.438,1.562 1.687,0.375 1.75,1.375 2,0.125 1.188,-0.5 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0686" d="m 101.188,539.125 1.312,0.312 2.125,-0.5 1,2.375 3.563,-0.375 3.25,0.75 0.625,1.25 1.75,0.375 3.5,2.75 -1.875,2.375 -1.688,-0.375 -1.125,1.75 -1.437,0.063 -1.125,1.125 -1.563,-1.125 -2.062,-0.188 -1.188,0.5 -2,-0.125 -1.75,-1.375 -1.687,-0.375 -0.438,-1.562 -2,-0.375 -1.375,-0.688 0.875,-2 2.125,-2.5 -0.437,-0.937 1.625,-1.125 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0687" d="m 96.125,522.75 0.188,1.437 3.437,-0.687 0.938,-1.875 1.187,0.625 1.063,4 0.562,1.5 -0.875,1.062 -0.812,1.938 -1.188,-0.688 -2,-0.375 -1.937,0.625 -0.625,-0.687 -2.625,-0.125 0.375,-1.313 -0.813,-0.625 -0.375,-4.25 3.5,-0.562 z" aria-hidden="true"></path>
@@ -1096,7 +1345,7 @@
                             <path class="header-sweden-path" data-id="0764" d="m 92.75,574.562 1.188,1.125 -1.75,3.625 -1.375,1.813 0.437,1.75 1.25,-0.125 0.75,2.062 0.063,4.063 -1.25,1.125 0.437,2.687 0.313,1.938 -1.938,0.375 -1,-1.313 -2.875,-0.375 0.188,-3.187 -0.75,-0.5 -0.313,-3.125 -2.562,-1.438 -0.125,-1.062 0.437,-1.313 -0.187,-3.437 1.25,-0.688 1.375,-3.312 -1.5,-1.938 -0.25,-1.625 0.5,-0.75 0.125,-4.312 1.187,0 2.5,-0.063 0.25,2 3.063,1.438 0.562,4.562 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0765" d="m 69.625,596.562 1.25,-0.25 -0.25,-4.75 1.438,0 2.125,-1.5 0.875,0.625 2.625,-4 1.937,2.375 3.313,-2.687 0.625,-1.313 2.562,1.438 0.313,3.125 0.75,0.5 -0.188,3.187 2.875,0.375 1,1.313 0,1.875 0.938,0.812 -0.75,1.688 -1.875,-0.313 -2.75,-1.125 -4.125,-1.187 -0.438,0.562 -2.625,-0.812 -0.812,-1.188 -1,0.063 -0.25,1.25 -1,1.625 -2.25,0 -1.563,0.812 -2.062,-0.062 -2.188,0.937 0.313,-1.75 1,-0.312 0.187,-1.313 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0767" d="m 60.688,591.062 1.75,-0.75 0.625,-1.375 1.312,-0.437 1.188,0.562 2.75,0.5 1.437,-1.25 0.25,1.375 -0.625,1.25 1.25,0.625 0.25,4.75 -1.25,0.25 -0.187,1.313 -1,0.312 -0.313,1.75 -3.312,0.75 -2.063,-0.125 -1,-1 0.438,-1 -0.563,-0.875 0.75,-1.937 -0.687,-2.625 -0.688,-0.75 -0.312,-1.313 z" aria-hidden="true"></path>
-                            <path class="header-sweden-path selected" data-id="0780" d="m 92.75,574.562 1.188,1.125 -1.75,3.625 -1.375,1.813 0.437,1.75 1.25,-0.125 0.75,2.062 0.063,4.063 2.062,1.937 1.938,-0.25 0.562,-2.312 2.313,-0.75 2.062,2.625 0.438,1.875 1.125,-0.563 -0.25,-3.125 1.312,-0.687 -1.437,-3 0.312,-2.25 2.563,-0.75 -1.125,-4.375 0.937,-0.563 1.25,-1.375 0.125,-2.5 -2,-0.812 -0.687,-2.25 0.312,-1.5 -1.625,-2.875 -1,0.687 -1.062,0.25 -0.5,1.125 -1.438,0.125 -0.375,-2.312 -1,-1.125 -1.625,-0.875 -1.5,0 -1.437,0.875 -1.563,0.187 -0.437,0.625 -1,-0.187 -0.25,1.5 -1.438,0.312 0.25,2 3.063,1.438 0.562,4.562 z" aria-hidden="true"></path>
+                            <path class="header-sweden-path" data-id="0780" d="m 92.75,574.562 1.188,1.125 -1.75,3.625 -1.375,1.813 0.437,1.75 1.25,-0.125 0.75,2.062 0.063,4.063 2.062,1.937 1.938,-0.25 0.562,-2.312 2.313,-0.75 2.062,2.625 0.438,1.875 1.125,-0.563 -0.25,-3.125 1.312,-0.687 -1.437,-3 0.312,-2.25 2.563,-0.75 -1.125,-4.375 0.937,-0.563 1.25,-1.375 0.125,-2.5 -2,-0.812 -0.687,-2.25 0.312,-1.5 -1.625,-2.875 -1,0.687 -1.062,0.25 -0.5,1.125 -1.438,0.125 -0.375,-2.312 -1,-1.125 -1.625,-0.875 -1.5,0 -1.437,0.875 -1.563,0.187 -0.437,0.625 -1,-0.187 -0.25,1.5 -1.438,0.312 0.25,2 3.063,1.438 0.562,4.562 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0781" d="m 60.688,591.062 1.75,-0.75 0.625,-1.375 1.312,-0.437 1.188,0.562 2.75,0.5 1.437,-1.25 0.25,1.375 -0.625,1.25 1.25,0.625 1.438,0 2.125,-1.5 0.875,0.625 2.625,-4 1.937,2.375 3.313,-2.687 0.625,-1.313 -0.125,-1.062 0.437,-1.313 -0.187,-3.437 -1.125,-0.625 -1.063,-2.5 -0.187,-1.938 -1.438,-2.437 -0.562,0.437 -0.938,-1.062 -1.375,-0.438 -2.25,0.563 -0.312,1.125 -1.5,0.75 -1,-2.625 -1.813,-0.25 -1.125,0.687 -0.562,3.063 0.187,1.125 -0.937,2.75 -1,-0.313 -0.25,0.75 -2,0.063 -1.188,1 -0.437,-0.563 -2.5,0.75 -0.813,-0.5 -1.125,1.063 0.5,3.5 0,3.687 1.125,1.438 0.688,2.312 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0821" d="m 124.375,562.375 1.938,0.312 1.812,-0.812 0.563,0.812 3.125,-0.562 -0.813,1.187 -0.625,5.438 3.563,3.187 -0.625,2.375 -1.375,0.563 -2.625,-0.438 -0.75,0.563 -2.25,-3.5 -1,-1.25 -1.563,-0.188 -3.375,0.875 -1.875,-0.75 -0.875,-2.062 -2.312,-1 0.5,-1.5 -0.625,-0.688 0.5,-1 1.312,0 0.75,-1.25 3.5,1.625 0.438,-1.437 2.687,-0.5 z" aria-hidden="true"></path>
                             <path class="header-sweden-path" data-id="0834" d="m 128.438,605.562 0.812,-3.687 0.938,-3.125 -3.125,-1.75 -0.125,-0.938 -1.813,0.375 -2.875,0 -1.312,-0.75 -1.563,1.25 0.25,1.625 -1.375,1.438 0.563,1.125 1.375,0.437 1.625,3.125 1.437,1 2.438,-0.125 1.125,0.813 1.625,-0.813 z" aria-hidden="true"></path>
@@ -1323,17 +1572,22 @@
                 <div class="status-pill" id="load-status">Klar att ladda</div>
                 <button class="export-button" type="button" id="export-report">Exportera PDF</button>
             </div>
-            <div class="header-map-card" aria-label="Karta över länets kommuner">
-                <svg class="header-county-map" viewBox="54 562 70 43" role="img" aria-label="Kommuner i länet">
+            <div class="header-map-card" aria-label="Karta över Jönköpings län">
+                <svg class="header-county-map" viewBox="50 515 72 72" role="img" aria-label="Kommuner i Jönköpings län">
                     <g>
-                            <path class="header-map-path" data-id="0760" d="m 105.188,577.25 0.937,-0.563 1.25,-1.375 0.125,-2.5 -2,-0.812 -0.687,-2.25 0.312,-1.5 -1.625,-2.875 0.5,-0.75 1.75,0.125 -1.062,-1.625 1.5,0 1.125,0.875 4,-0.625 3.875,1.562 0.625,0.688 -0.5,1.5 2.312,1 0.875,2.062 1.875,0.75 1.563,2.188 1.062,2.187 -0.812,2.563 -2.938,0.25 -1.062,0.25 -2.438,-0.875 -1.125,0.5 0,0.937 -1.812,0.625 -0.688,-0.75 -1.812,0.688 -0.313,1.187 -1.5,-0.875 0.188,1.875 -2.375,-0.062 -1.125,-4.375 z"></path>
-                            <path class="header-map-path" data-id="0761" d="m 104.875,587.625 2.75,0.187 1.438,1.5 0.875,0.563 -0.563,1.312 1.375,1.313 1.5,-1.938 -0.312,-1.187 0.312,-2 -1.562,-2.938 2.062,-0.875 2.625,-0.312 0.25,-1.438 -1,-2.875 -1.812,0.625 -0.688,-0.75 -1.812,0.688 -0.313,1.187 -1.5,-0.875 0.188,1.875 -2.375,-0.062 -2.563,0.75 -0.312,2.25 1.437,3 z"></path>
-                            <path class="header-map-path" data-id="0763" d="m 101.938,599.125 2.75,0 0.187,1 1.5,0 0.25,-1.188 1.25,-0.812 1.125,1 1.063,-1.188 0.187,-2.625 0.75,-0.687 -0.25,-2.125 -1.375,-1.313 0.563,-1.312 -0.875,-0.563 -1.438,-1.5 -2.75,-0.187 -1.312,0.687 0.25,3.125 -1.125,0.563 -0.438,-1.875 -2.062,-2.625 -2.313,0.75 -0.562,2.312 -1.938,0.25 -2.062,-1.937 -1.25,1.125 0.437,2.687 0.313,1.938 -1.938,0.375 0,1.875 0.938,0.812 -0.75,1.688 1.812,2.375 1.063,0.5 2.375,0.437 2,0.875 1,-0.875 1.25,-2.562 1.375,-1 z"></path>
-                            <path class="header-map-path" data-id="0764" d="m 92.75,574.562 1.188,1.125 -1.75,3.625 -1.375,1.813 0.437,1.75 1.25,-0.125 0.75,2.062 0.063,4.063 -1.25,1.125 0.437,2.687 0.313,1.938 -1.938,0.375 -1,-1.313 -2.875,-0.375 0.188,-3.187 -0.75,-0.5 -0.313,-3.125 -2.562,-1.438 -0.125,-1.062 0.437,-1.313 -0.187,-3.437 1.25,-0.688 1.375,-3.312 -1.5,-1.938 -0.25,-1.625 0.5,-0.75 0.125,-4.312 1.187,0 2.5,-0.063 0.25,2 3.063,1.438 0.562,4.562 z"></path>
-                            <path class="header-map-path" data-id="0765" d="m 69.625,596.562 1.25,-0.25 -0.25,-4.75 1.438,0 2.125,-1.5 0.875,0.625 2.625,-4 1.937,2.375 3.313,-2.687 0.625,-1.313 2.562,1.438 0.313,3.125 0.75,0.5 -0.188,3.187 2.875,0.375 1,1.313 0,1.875 0.938,0.812 -0.75,1.688 -1.875,-0.313 -2.75,-1.125 -4.125,-1.187 -0.438,0.562 -2.625,-0.812 -0.812,-1.188 -1,0.063 -0.25,1.25 -1,1.625 -2.25,0 -1.563,0.812 -2.062,-0.062 -2.188,0.937 0.313,-1.75 1,-0.312 0.187,-1.313 z"></path>
-                            <path class="header-map-path" data-id="0767" d="m 60.688,591.062 1.75,-0.75 0.625,-1.375 1.312,-0.437 1.188,0.562 2.75,0.5 1.437,-1.25 0.25,1.375 -0.625,1.25 1.25,0.625 0.25,4.75 -1.25,0.25 -0.187,1.313 -1,0.312 -0.313,1.75 -3.312,0.75 -2.063,-0.125 -1,-1 0.438,-1 -0.563,-0.875 0.75,-1.937 -0.687,-2.625 -0.688,-0.75 -0.312,-1.313 z"></path>
-                            <path class="header-map-path selected" data-id="0780" d="m 92.75,574.562 1.188,1.125 -1.75,3.625 -1.375,1.813 0.437,1.75 1.25,-0.125 0.75,2.062 0.063,4.063 2.062,1.937 1.938,-0.25 0.562,-2.312 2.313,-0.75 2.062,2.625 0.438,1.875 1.125,-0.563 -0.25,-3.125 1.312,-0.687 -1.437,-3 0.312,-2.25 2.563,-0.75 -1.125,-4.375 0.937,-0.563 1.25,-1.375 0.125,-2.5 -2,-0.812 -0.687,-2.25 0.312,-1.5 -1.625,-2.875 -1,0.687 -1.062,0.25 -0.5,1.125 -1.438,0.125 -0.375,-2.312 -1,-1.125 -1.625,-0.875 -1.5,0 -1.437,0.875 -1.563,0.187 -0.437,0.625 -1,-0.187 -0.25,1.5 -1.438,0.312 0.25,2 3.063,1.438 0.562,4.562 z"></path>
-                            <path class="header-map-path" data-id="0781" d="m 60.688,591.062 1.75,-0.75 0.625,-1.375 1.312,-0.437 1.188,0.562 2.75,0.5 1.437,-1.25 0.25,1.375 -0.625,1.25 1.25,0.625 1.438,0 2.125,-1.5 0.875,0.625 2.625,-4 1.937,2.375 3.313,-2.687 0.625,-1.313 -0.125,-1.062 0.437,-1.313 -0.187,-3.437 -1.125,-0.625 -1.063,-2.5 -0.187,-1.938 -1.438,-2.437 -0.562,0.437 -0.938,-1.062 -1.375,-0.438 -2.25,0.563 -0.312,1.125 -1.5,0.75 -1,-2.625 -1.813,-0.25 -1.125,0.687 -0.562,3.063 0.187,1.125 -0.937,2.75 -1,-0.313 -0.25,0.75 -2,0.063 -1.188,1 -0.437,-0.563 -2.5,0.75 -0.813,-0.5 -1.125,1.063 0.5,3.5 0,3.687 1.125,1.438 0.688,2.312 z"></path>
+                            <path class="header-map-path" data-id="0604" aria-label="Aneby" d="m 101.188,539.125 1.312,0.312 2.125,-0.5 -0.875,-3.125 0.313,-1.125 -1.75,-2.125 -0.5,-1.812 -1.188,-0.688 -2,-0.375 -1.937,0.625 -0.625,-0.687 -2.625,-0.125 0.375,-1.313 -0.813,-0.625 -1,0.25 -0.187,1.75 -1.688,0.75 -0.75,1.5 0.375,2.125 1.188,-0.437 1.5,0.062 0.875,4.813 1.812,-0.938 0.875,-0.812 1.313,-0.188 0.625,0.563 1.437,-0.938 1.375,0.313 0.438,2.75 z"></path>
+                            <path class="header-map-path" data-id="0686" aria-label="Eksjö" d="m 101.188,539.125 1.312,0.312 2.125,-0.5 1,2.375 3.563,-0.375 3.25,0.75 0.625,1.25 1.75,0.375 3.5,2.75 -1.875,2.375 -1.688,-0.375 -1.125,1.75 -1.437,0.063 -1.125,1.125 -1.563,-1.125 -2.062,-0.188 -1.188,0.5 -2,-0.125 -1.75,-1.375 -1.687,-0.375 -0.438,-1.562 -2,-0.375 -1.375,-0.688 0.875,-2 2.125,-2.5 -0.437,-0.937 1.625,-1.125 z"></path>
+                            <path class="header-map-path" data-id="0682" aria-label="Nässjö" d="m 85.25,548.75 0.313,-2.625 1,-0.875 -0.313,-0.875 0.688,-1.5 0.812,-0.375 0.688,-2.438 1.687,-0.875 2,0.313 1.188,-1.125 1.812,-0.938 0.875,-0.812 1.313,-0.188 0.625,0.563 1.437,-0.938 1.375,0.313 0.438,2.75 -1.625,1.125 0.437,0.937 -2.125,2.5 -0.875,2 1.375,0.688 -0.312,1.875 -0.125,2.187 0.187,1.813 -0.625,2.812 -1.687,-0.375 -1,-2.187 -1.688,-0.313 -0.875,0.875 -1.062,-0.25 L 90,551 l -1.562,0 -0.625,-1.5 -3.125,-0.438 0.562,-0.312 z"></path>
+                            <path class="header-map-path" data-id="0684" aria-label="Sävsjö" d="M 93.563,564.125 95,563.25 l 1.5,0 0.563,-1.625 0.187,-2.875 0.25,-3.688 -1.687,-0.375 -1,-2.187 -1.688,-0.313 -0.875,0.875 -1.062,-0.25 L 90,551 l -1.562,0 -2.438,1.125 0.188,4 0.5,2.125 0.875,2.312 -0.5,3.688 -1,0.625 0.312,1.75 2.5,-0.063 1.438,-0.312 0.25,-1.5 1,0.187 0.437,-0.625 1.563,-0.187 z"></path>
+                            <path class="header-map-path" data-id="0687" aria-label="Tranås" d="m 96.125,522.75 0.188,1.437 3.437,-0.687 0.938,-1.875 1.187,0.625 1.063,4 0.562,1.5 -0.875,1.062 -0.812,1.938 -1.188,-0.688 -2,-0.375 -1.937,0.625 -0.625,-0.687 -2.625,-0.125 0.375,-1.313 -0.813,-0.625 -0.375,-4.25 3.5,-0.562 z"></path>
+                            <path class="header-map-path" data-id="0685" aria-label="Vetlanda" d="m 107.438,549.687 2.062,0.188 1.563,1.125 1.125,-1.125 1.437,-0.063 1.125,-1.75 1.688,0.375 1.062,0.938 0.375,1.312 -0.75,0.75 -0.125,2.125 -1.375,-1 -1.187,0.938 0.125,2.5 -0.375,0.875 0.437,2.062 -1.187,0.813 0.125,2.437 0.812,0.625 0.813,2.125 -3.875,-1.562 -4,0.625 -1.125,-0.875 -1.5,0 1.062,1.625 -1.75,-0.125 -0.5,0.75 -1,0.687 -1.062,0.25 -0.5,1.125 -1.438,0.125 -0.375,-2.312 -1,-1.125 -1.625,-0.875 0.563,-1.625 0.187,-2.875 0.25,-3.688 0.625,-2.812 -0.187,-1.813 0.125,-2.187 0.312,-1.875 2,0.375 0.438,1.562 1.687,0.375 1.75,1.375 2,0.125 1.188,-0.5 z"></path>
+                            <path class="header-map-path" data-id="0617" aria-label="Gnosjö" d="m 68.625,558.687 1,1.875 -0.062,1.375 3.187,0.25 0.063,-1.187 1.375,-0.563 0.437,0.688 1.625,0.5 1.188,-1 0.812,-1 -1.375,-0.625 0.375,-1.375 -1.187,-1.563 -1.063,-0.25 -1.062,-1.437 0.5,-1.563 0,-1.125 -1.563,-0.437 -0.812,0.562 -1.125,-0.75 -1.063,0.875 -1.062,-0.312 -1.063,1.5 -0.937,2.187 -0.563,1.375 1.313,0.188 1.125,0.375 -0.063,1.437 z"></path>
+                            <path class="header-map-path" data-id="0642" aria-label="Mullsjö" d="m 73.875,531.937 0,1.25 -0.687,1.563 -2.125,-0.438 0.25,-1.812 -0.938,-2.563 0.063,-2.062 1.25,-1.438 0.5,-1.687 0.562,-0.125 1.188,0.687 0.75,-0.5 1.812,0.813 0.188,1.125 -0.75,0.187 -0.813,1.688 0.375,2.062 -0.375,1.25 -1.25,0 z"></path>
+                            <path class="header-map-path" data-id="0643" aria-label="Habo" d="m 73.875,533.187 1.625,0.688 1.125,1.937 0.875,0.188 -0.062,-2.188 1.062,-0.75 0.938,0.438 0.875,-0.875 0.187,-3.375 1.063,-1.813 0.937,-3.125 0.563,-3.687 -2.438,-0.313 -0.062,3.5 -1.063,1.313 -0.125,0.812 -2.687,0.813 -0.75,0.187 -0.813,1.688 0.375,2.062 -0.375,1.25 -1.25,0 0,1.25 z"></path>
+                            <path class="header-map-path" data-id="0662" aria-label="Gislaved" d="m 58.125,568.562 2.25,-0.937 2.563,0.5 0.625,-0.625 0.25,1.5 0.75,-0.188 2.062,1.313 -0.5,1.75 0.688,1.5 L 68.438,574 69,570.937 70.125,570.25 69.5,568.187 70.063,567.062 69.5,566 l -1.125,0.312 -0.5,-0.875 0.75,-1 0.063,-2.687 0.875,0.187 0.062,-1.375 -1,-1.875 0.063,-1.437 -1.125,-0.375 -1.313,-0.188 0.563,-1.375 0.937,-2.187 1.063,-1.5 1.062,0.312 1.063,-0.875 1.125,0.75 0.812,-0.562 1.563,0.437 0.25,-2.375 -0.625,-1.5 0.312,-1.187 -0.687,-0.438 -0.875,-0.875 -0.938,1.938 -1,-0.563 -1.687,0.688 -0.438,1.25 -1.125,0.812 -3,4.5 -0.625,1.625 -1.437,0.75 0,1.125 -1.125,0.25 -0.438,0.875 -1.937,0.438 -0.625,2.562 -1.125,-0.437 -0.75,1 -0.563,2.25 -1.25,1.625 -1.25,0.937 0.063,1.5 0.937,3 2.313,-2 0.25,-1.437 1.062,0.562 z"></path>
+                            <path class="header-map-path" data-id="0665" aria-label="Vaggeryd" d="m 79,544.375 1.188,1 0.937,-1.438 1.625,-0.312 -0.437,0.937 0.75,3.313 2.187,0.875 -0.562,0.312 3.125,0.438 0.625,1.5 -2.438,1.125 0.188,4 -1.188,0.375 -1.312,0.75 0.062,1.187 -0.687,0.938 -0.938,-0.688 -2.125,0.688 -0.687,-0.438 -1.063,0.688 -1.375,-0.625 0.375,-1.375 -1.187,-1.563 -1.063,-0.25 -1.062,-1.437 0.5,-1.563 0,-1.125 0.25,-2.375 -0.625,-1.5 0.312,-1.187 -0.687,-0.438 -0.875,-0.875 1.062,-0.875 1.5,0.375 1.438,-1.687 1,1.375 1.187,-0.125 z"></path>
+                            <path class="header-map-path" data-id="0680" aria-label="Jönköping" d="m 79,544.375 1.188,1 0.937,-1.438 1.625,-0.312 -0.437,0.937 0.75,3.313 2.187,0.875 0.313,-2.625 1,-0.875 -0.313,-0.875 0.688,-1.5 0.812,-0.375 0.688,-2.438 1.687,-0.875 2,0.313 1.188,-1.125 -0.875,-4.813 -1.5,-0.062 -1.188,0.437 -0.375,-2.125 0.75,-1.5 1.688,-0.75 0.187,-1.75 1,-0.25 -0.375,-4.25 -1.625,-0.687 -1.75,2.812 -0.5,1.938 -2.437,1.562 -1.75,3.063 -0.5,2.187 -0.25,2.688 -1.25,0.125 -0.75,0.562 -0.688,-0.5 0.25,-1.875 L 81,533.25 80.313,532.625 79.438,533.5 78.5,533.062 77.438,533.812 77.5,536 76.625,535.812 75.5,533.875 73.875,533.187 73.188,534.75 71.063,534.312 71,538 l -0.875,1.312 -0.125,1.313 0.688,1.812 -0.375,1.25 -1.188,0.563 -0.125,1 0.188,2.125 1.687,-0.688 1,0.563 0.938,-1.938 1.062,-0.875 1.5,0.375 1.438,-1.687 1,1.375 1.187,-0.125 z"></path>
+                            <path class="header-map-path" data-id="0683" aria-label="Värnamo" d="m 83.688,579.25 1.25,-0.688 1.375,-3.312 -1.5,-1.938 -0.25,-1.625 0.5,-0.75 0.125,-4.312 1.187,0 -0.312,-1.75 1,-0.625 0.5,-3.688 -0.875,-2.312 -0.5,-2.125 -1.188,0.375 -1.312,0.75 0.062,1.187 -0.687,0.938 -0.938,-0.688 -2.125,0.688 -0.687,-0.438 -1.063,0.688 -0.812,1 -1.188,1 -1.625,-0.5 -0.437,-0.688 -1.375,0.563 -0.063,1.187 -3.187,-0.25 -0.875,-0.187 -0.063,2.687 -0.75,1 0.5,0.875 1.125,-0.312 0.563,1.062 -0.563,1.125 0.625,2.063 1.813,0.25 1,2.625 1.5,-0.75 0.312,-1.125 2.25,-0.563 1.375,0.438 0.938,1.062 0.562,-0.437 1.438,2.437 0.187,1.938 1.063,2.5 1.125,0.625 z"></path>
                     </g>
                 </svg>
             </div>
@@ -1348,27 +1602,28 @@
         <button class="tab-btn" type="button" data-tab="work">Arbete och livsvillkor</button>
         <button class="tab-btn" type="button" data-tab="income">Inkomst och hushåll</button>
         <button class="tab-btn" type="button" data-tab="business">Näringsliv och pendling</button>
+        <button class="tab-btn" type="button" data-tab="procurement">Upphandling</button>
         <button class="tab-btn" type="button" data-tab="economy">Ekonomi</button>
+        <button class="tab-btn" type="button" data-tab="budgetsimulator">Budgetsimulator</button>
         <button class="tab-btn" type="button" data-tab="school">Skola och kompetens</button>
         <button class="tab-btn" type="button" data-tab="housing">Bostäder och infrastruktur</button>
         <button class="tab-btn" type="button" data-tab="democracy">Val och demokrati</button>
         <button class="tab-btn" type="button" data-tab="climate">Miljö och klimat</button>
         <button class="tab-btn" type="button" data-tab="vehicles">Fordon</button>
-        <button class="tab-btn" type="button" data-tab="procurement">Upphandling</button>
         <button class="tab-btn" type="button" data-tab="bathing">Badvatten</button>
         <button class="tab-btn" type="button" data-tab="map">Karta</button>
     </nav>
 
     <main id="main"></main>
 
-    <p class="source">Källa: Kolada API v3, SCB, Migrationsverket, Arbetsförmedlingen, Trafikanalys fordonsstatistik, Upphandlingsmyndighetens öppna data om annonserade upphandlingar, Havs- och vattenmyndighetens API för badplatser och badvatten samt Svenskt Näringsliv/Lokalt företagsklimat. Kronobergs län hämtas som livevärde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada eller SCB.</p>
+    <p class="source">Källa: Kolada API v3, SCB, Nationella emissionsdatabasen, Migrationsverket, Arbetsförmedlingen, Trafikanalys fordonsstatistik, Jordbruksverket, Ekomatcentrum, Upphandlingsmyndighetens öppna data om annonserade upphandlingar, Havs- och vattenmyndighetens API för badplatser och badvatten samt Trafikverkets Lastkajen/NetInfo för ATK-kartlager. Höglandet beräknas i sidan av kommunvärdena. Jönköpings län hämtas som Kolada-värde där det finns, annars beräknas det live från länets kommuner. Riket hämtas som livevärde från Kolada.</p>
 </div>
 
 <script>
 const API_BASE = "https://api.kolada.se/v3";
 const SCB_VEHICLE_API_BASE = "https://www.statistikdatabasen.scb.se/api/v1/sv/ssd/START/TK/TK1001/TK1001A";
 const HAV_API_BASE = "https://gw.havochvatten.se/external-public/bathing-waters/v2";
-const DEFAULT_MUNICIPALITY = "0780";
+const DEFAULT_MUNICIPALITY = "0684";
 let selectedMunicipality = DEFAULT_MUNICIPALITY;
 const loadedTabs = new Set();
 const metricCache = new Map();
@@ -1381,43 +1636,74 @@ let commuteLeafletMap = null;
 let commuteResizeObserver = null;
 let metricLeafletMap = null;
 let metricResizeObserver = null;
+let atkLeafletMap = null;
+let atkResizeObserver = null;
+let atkMunicipalityLayer = null;
+let atkMunicipalityMarker = null;
 let mapSectionId = "population";
 let mapMetricId = "N01951";
 let vehicleTrafficCache = null;
 
 const municipalities = [
-    { id: "0760", name: "Uppvidinge" },
-    { id: "0761", name: "Lessebo" },
-    { id: "0763", name: "Tingsryd" },
-    { id: "0764", name: "Alvesta" },
-    { id: "0765", name: "Älmhult" },
-    { id: "0767", name: "Markaryd" },
-    { id: "0780", name: "Växjö" },
-    { id: "0781", name: "Ljungby" }
+    { id: "0604", name: "Aneby" },
+    { id: "0686", name: "Eksjö" },
+    { id: "0682", name: "Nässjö" },
+    { id: "0684", name: "Sävsjö" },
+    { id: "0687", name: "Tranås" },
+    { id: "0685", name: "Vetlanda" },
+    { id: "0617", name: "Gnosjö" },
+    { id: "0642", name: "Mullsjö" },
+    { id: "0643", name: "Habo" },
+    { id: "0662", name: "Gislaved" },
+    { id: "0665", name: "Vaggeryd" },
+    { id: "0680", name: "Jönköping" },
+    { id: "0683", name: "Värnamo" }
 ];
 
-const highlandIds = [];
+const highlandIds = ["0604", "0686", "0682", "0684", "0687", "0685"];
 const countyMunicipalityIds = municipalities.map(item => item.id);
-const countyId = "0007";
+const countyId = "0006";
 const countryId = "0000";
+
 const NATIONAL_POPULATION_MAY_2026 = 10608128;
 const PROCUREMENT_SOURCE = {
     title: "Upphandlingsmyndigheten, öppna data: Antal anbud och kontrakterat värde. Statistik om annonserade upphandlingar i Sverige",
     period: "2021-2024",
     note: "Avser kommunen som upphandlande organisation. Kommunala bolag, regionen och kommunalförbund ingår inte i denna sammanställning."
 };
-const PROCUREMENT_DATA = [{"id":"0760","year":2021,"upphandlingar":2,"anbudsomraden":2,"anbud":6.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":50.0,"kontrakteratVarde":5572187,"upphandlingarMedVarde":2},{"id":"0760","year":2022,"upphandlingar":5,"anbudsomraden":5,"anbud":13.0,"snittAnbud":2.6,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":20.0,"kontrakteratVarde":44000000,"upphandlingarMedVarde":5},{"id":"0760","year":2023,"upphandlingar":6,"anbudsomraden":6,"anbud":20.0,"snittAnbud":3.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":16.7,"kontrakteratVarde":15700000,"upphandlingarMedVarde":5},{"id":"0760","year":2024,"upphandlingar":4,"anbudsomraden":5,"anbud":16.0,"snittAnbud":3.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":11650000,"upphandlingarMedVarde":4},{"id":"0761","year":2021,"upphandlingar":8,"anbudsomraden":8,"anbud":26.0,"snittAnbud":3.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":28840500,"upphandlingarMedVarde":8},{"id":"0761","year":2022,"upphandlingar":7,"anbudsomraden":7,"anbud":17.0,"snittAnbud":2.4,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":69301500,"upphandlingarMedVarde":7},{"id":"0761","year":2023,"upphandlingar":9,"anbudsomraden":10,"anbud":24.0,"snittAnbud":2.4,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":23180000,"upphandlingarMedVarde":8},{"id":"0761","year":2024,"upphandlingar":6,"anbudsomraden":6,"anbud":17.0,"snittAnbud":2.8,"miljoAndel":66.7,"socialAndel":50.0,"overprovadeAndel":0.0,"kontrakteratVarde":34100000,"upphandlingarMedVarde":5},{"id":"0763","year":2021,"upphandlingar":20,"anbudsomraden":20,"anbud":58.0,"snittAnbud":2.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":50646610,"upphandlingarMedVarde":20},{"id":"0763","year":2022,"upphandlingar":9,"anbudsomraden":9,"anbud":26.0,"snittAnbud":2.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":126391539,"upphandlingarMedVarde":9},{"id":"0763","year":2023,"upphandlingar":9,"anbudsomraden":9,"anbud":22.0,"snittAnbud":2.4,"miljoAndel":11.1,"socialAndel":11.1,"overprovadeAndel":11.1,"kontrakteratVarde":36439000,"upphandlingarMedVarde":7},{"id":"0763","year":2024,"upphandlingar":11,"anbudsomraden":15,"anbud":73.0,"snittAnbud":4.9,"miljoAndel":20.0,"socialAndel":13.3,"overprovadeAndel":0.0,"kontrakteratVarde":44835000,"upphandlingarMedVarde":11},{"id":"0764","year":2021,"upphandlingar":13,"anbudsomraden":13,"anbud":44.0,"snittAnbud":3.4,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":60460273,"upphandlingarMedVarde":13},{"id":"0764","year":2022,"upphandlingar":19,"anbudsomraden":19,"anbud":72.0,"snittAnbud":3.8,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.3,"kontrakteratVarde":140750002,"upphandlingarMedVarde":19},{"id":"0764","year":2023,"upphandlingar":6,"anbudsomraden":6,"anbud":21.0,"snittAnbud":3.5,"miljoAndel":33.3,"socialAndel":0.0,"overprovadeAndel":16.7,"kontrakteratVarde":28630000,"upphandlingarMedVarde":5},{"id":"0764","year":2024,"upphandlingar":17,"anbudsomraden":18,"anbud":61.0,"snittAnbud":3.8,"miljoAndel":33.3,"socialAndel":16.7,"overprovadeAndel":16.7,"kontrakteratVarde":145647000,"upphandlingarMedVarde":16},{"id":"0765","year":2021,"upphandlingar":15,"anbudsomraden":15,"anbud":41.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":313365000,"upphandlingarMedVarde":15},{"id":"0765","year":2022,"upphandlingar":9,"anbudsomraden":9,"anbud":26.0,"snittAnbud":2.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":11.1,"kontrakteratVarde":136700000,"upphandlingarMedVarde":9},{"id":"0765","year":2023,"upphandlingar":11,"anbudsomraden":14,"anbud":59.0,"snittAnbud":4.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":114337689,"upphandlingarMedVarde":10},{"id":"0765","year":2024,"upphandlingar":8,"anbudsomraden":13,"anbud":47.0,"snittAnbud":3.9,"miljoAndel":15.4,"socialAndel":15.4,"overprovadeAndel":0.0,"kontrakteratVarde":85787000,"upphandlingarMedVarde":7},{"id":"0767","year":2021,"upphandlingar":1,"anbudsomraden":1,"anbud":3.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":100000000,"upphandlingarMedVarde":1},{"id":"0767","year":2022,"upphandlingar":1,"anbudsomraden":1,"anbud":10.0,"snittAnbud":10.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":5000000,"upphandlingarMedVarde":1},{"id":"0767","year":2023,"upphandlingar":3,"anbudsomraden":3,"anbud":23.0,"snittAnbud":7.7,"miljoAndel":66.7,"socialAndel":0.0,"overprovadeAndel":33.3,"kontrakteratVarde":222812000,"upphandlingarMedVarde":3},{"id":"0767","year":2024,"upphandlingar":5,"anbudsomraden":5,"anbud":38.0,"snittAnbud":7.6,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":20.0,"kontrakteratVarde":74837755,"upphandlingarMedVarde":4},{"id":"0780","year":2021,"upphandlingar":33,"anbudsomraden":33,"anbud":142.0,"snittAnbud":4.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":9.1,"kontrakteratVarde":722076000,"upphandlingarMedVarde":33},{"id":"0780","year":2022,"upphandlingar":43,"anbudsomraden":47,"anbud":168.0,"snittAnbud":3.6,"miljoAndel":4.3,"socialAndel":0.0,"overprovadeAndel":6.4,"kontrakteratVarde":578024206,"upphandlingarMedVarde":42},{"id":"0780","year":2023,"upphandlingar":47,"anbudsomraden":102,"anbud":323.0,"snittAnbud":3.4,"miljoAndel":11.8,"socialAndel":0.0,"overprovadeAndel":13.7,"kontrakteratVarde":1144988268,"upphandlingarMedVarde":39},{"id":"0780","year":2024,"upphandlingar":47,"anbudsomraden":100,"anbud":365.0,"snittAnbud":3.7,"miljoAndel":36.0,"socialAndel":18.0,"overprovadeAndel":7.0,"kontrakteratVarde":1194133956,"upphandlingarMedVarde":39},{"id":"0781","year":2021,"upphandlingar":15,"anbudsomraden":15,"anbud":42.0,"snittAnbud":2.8,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":610656750,"upphandlingarMedVarde":15},{"id":"0781","year":2022,"upphandlingar":27,"anbudsomraden":27,"anbud":114.0,"snittAnbud":4.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":168138494,"upphandlingarMedVarde":27},{"id":"0781","year":2023,"upphandlingar":25,"anbudsomraden":25,"anbud":133.0,"snittAnbud":5.3,"miljoAndel":8.0,"socialAndel":8.0,"overprovadeAndel":8.0,"kontrakteratVarde":408853450,"upphandlingarMedVarde":23},{"id":"0781","year":2024,"upphandlingar":20,"anbudsomraden":21,"anbud":126.0,"snittAnbud":6.6,"miljoAndel":14.3,"socialAndel":0.0,"overprovadeAndel":4.8,"kontrakteratVarde":250651361,"upphandlingarMedVarde":17}];
-const PROCUREMENT_BUSINESS_RANKING = [{"id":"0760","ranking2025":240,"ranking2026":253},{"id":"0761","ranking2025":142,"ranking2026":75},{"id":"0763","ranking2025":212,"ranking2026":127},{"id":"0764","ranking2025":69,"ranking2026":81},{"id":"0765","ranking2025":269,"ranking2026":197},{"id":"0767","ranking2025":54,"ranking2026":42},{"id":"0780","ranking2025":186,"ranking2026":222},{"id":"0781","ranking2025":194,"ranking2026":217}];
+const PROCUREMENT_DATA = [{"id":"0604","year":2021,"upphandlingar":3,"anbudsomraden":3,"anbud":4.0,"snittAnbud":1.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":4000000,"upphandlingarMedVarde":3},{"id":"0604","year":2022,"upphandlingar":10,"anbudsomraden":10,"anbud":59.0,"snittAnbud":5.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":10.0,"kontrakteratVarde":29054300,"upphandlingarMedVarde":10},{"id":"0604","year":2023,"upphandlingar":7,"anbudsomraden":7,"anbud":37.0,"snittAnbud":5.3,"miljoAndel":14.3,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":11500000,"upphandlingarMedVarde":2},{"id":"0604","year":2024,"upphandlingar":2,"anbudsomraden":2,"anbud":6.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":50.0,"overprovadeAndel":0.0,"kontrakteratVarde":2500000,"upphandlingarMedVarde":1},{"id":"0617","year":2021,"upphandlingar":1,"anbudsomraden":1,"anbud":1.0,"snittAnbud":1.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":58696000,"upphandlingarMedVarde":1},{"id":"0617","year":2024,"upphandlingar":1,"anbudsomraden":1,"anbud":1.0,"snittAnbud":1.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":null,"upphandlingarMedVarde":0},{"id":"0642","year":2021,"upphandlingar":2,"anbudsomraden":2,"anbud":31.0,"snittAnbud":15.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":4900000,"upphandlingarMedVarde":2},{"id":"0642","year":2022,"upphandlingar":7,"anbudsomraden":7,"anbud":19.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":62949727,"upphandlingarMedVarde":7},{"id":"0642","year":2023,"upphandlingar":4,"anbudsomraden":4,"anbud":11.0,"snittAnbud":2.8,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":71200000,"upphandlingarMedVarde":3},{"id":"0642","year":2024,"upphandlingar":6,"anbudsomraden":30,"anbud":237.0,"snittAnbud":9.9,"miljoAndel":3.3,"socialAndel":23.3,"overprovadeAndel":0.0,"kontrakteratVarde":20060000,"upphandlingarMedVarde":3},{"id":"0643","year":2021,"upphandlingar":12,"anbudsomraden":12,"anbud":59.0,"snittAnbud":4.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":197891000,"upphandlingarMedVarde":12},{"id":"0643","year":2022,"upphandlingar":15,"anbudsomraden":15,"anbud":56.0,"snittAnbud":3.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":71200000,"upphandlingarMedVarde":15},{"id":"0643","year":2023,"upphandlingar":12,"anbudsomraden":16,"anbud":88.0,"snittAnbud":5.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":297200000,"upphandlingarMedVarde":11},{"id":"0643","year":2024,"upphandlingar":5,"anbudsomraden":5,"anbud":16.0,"snittAnbud":3.2,"miljoAndel":40.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":260900000,"upphandlingarMedVarde":4},{"id":"0662","year":2021,"upphandlingar":20,"anbudsomraden":25,"anbud":75.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":441190000,"upphandlingarMedVarde":19},{"id":"0662","year":2022,"upphandlingar":30,"anbudsomraden":56,"anbud":163.0,"snittAnbud":2.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":28.6,"kontrakteratVarde":444061820,"upphandlingarMedVarde":30},{"id":"0662","year":2023,"upphandlingar":28,"anbudsomraden":42,"anbud":124.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":2.4,"kontrakteratVarde":152092132,"upphandlingarMedVarde":26},{"id":"0662","year":2024,"upphandlingar":25,"anbudsomraden":36,"anbud":84.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":2.8,"kontrakteratVarde":436026256,"upphandlingarMedVarde":21},{"id":"0665","year":2021,"upphandlingar":10,"anbudsomraden":18,"anbud":66.0,"snittAnbud":3.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":11.1,"kontrakteratVarde":193300000,"upphandlingarMedVarde":10},{"id":"0665","year":2022,"upphandlingar":10,"anbudsomraden":42,"anbud":739.0,"snittAnbud":17.6,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":163600000,"upphandlingarMedVarde":9},{"id":"0665","year":2023,"upphandlingar":14,"anbudsomraden":14,"anbud":43.0,"snittAnbud":3.1,"miljoAndel":14.3,"socialAndel":7.1,"overprovadeAndel":0.0,"kontrakteratVarde":59530000,"upphandlingarMedVarde":14},{"id":"0665","year":2024,"upphandlingar":13,"anbudsomraden":20,"anbud":100.0,"snittAnbud":5.3,"miljoAndel":15.0,"socialAndel":10.0,"overprovadeAndel":5.0,"kontrakteratVarde":278614535,"upphandlingarMedVarde":12},{"id":"0680","year":2021,"upphandlingar":68,"anbudsomraden":68,"anbud":288.0,"snittAnbud":4.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.9,"kontrakteratVarde":1726534336,"upphandlingarMedVarde":68},{"id":"0680","year":2022,"upphandlingar":76,"anbudsomraden":76,"anbud":324.0,"snittAnbud":4.3,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.3,"kontrakteratVarde":3025095001,"upphandlingarMedVarde":75},{"id":"0680","year":2023,"upphandlingar":68,"anbudsomraden":75,"anbud":348.0,"snittAnbud":4.6,"miljoAndel":10.7,"socialAndel":1.3,"overprovadeAndel":12.0,"kontrakteratVarde":1288783900,"upphandlingarMedVarde":60},{"id":"0680","year":2024,"upphandlingar":76,"anbudsomraden":118,"anbud":543.0,"snittAnbud":4.6,"miljoAndel":14.4,"socialAndel":4.2,"overprovadeAndel":3.4,"kontrakteratVarde":1377950001,"upphandlingarMedVarde":66},{"id":"0682","year":2021,"upphandlingar":20,"anbudsomraden":24,"anbud":109.0,"snittAnbud":4.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":226693001,"upphandlingarMedVarde":20},{"id":"0682","year":2022,"upphandlingar":18,"anbudsomraden":28,"anbud":222.0,"snittAnbud":7.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":76419131,"upphandlingarMedVarde":18},{"id":"0682","year":2023,"upphandlingar":27,"anbudsomraden":36,"anbud":254.0,"snittAnbud":7.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":280709000,"upphandlingarMedVarde":23},{"id":"0682","year":2024,"upphandlingar":24,"anbudsomraden":25,"anbud":68.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":4.0,"kontrakteratVarde":243924000,"upphandlingarMedVarde":17},{"id":"0683","year":2021,"upphandlingar":49,"anbudsomraden":78,"anbud":238.0,"snittAnbud":3.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.8,"kontrakteratVarde":302618000,"upphandlingarMedVarde":47},{"id":"0683","year":2022,"upphandlingar":44,"anbudsomraden":93,"anbud":546.0,"snittAnbud":5.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":1.1,"kontrakteratVarde":715800000,"upphandlingarMedVarde":44},{"id":"0683","year":2023,"upphandlingar":40,"anbudsomraden":58,"anbud":321.0,"snittAnbud":5.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":10.3,"kontrakteratVarde":262400000,"upphandlingarMedVarde":39},{"id":"0683","year":2024,"upphandlingar":41,"anbudsomraden":62,"anbud":178.0,"snittAnbud":3.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":17.7,"kontrakteratVarde":372023774,"upphandlingarMedVarde":36},{"id":"0684","year":2021,"upphandlingar":11,"anbudsomraden":11,"anbud":55.0,"snittAnbud":5.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":137252000,"upphandlingarMedVarde":11},{"id":"0684","year":2022,"upphandlingar":15,"anbudsomraden":15,"anbud":47.0,"snittAnbud":3.1,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":170536600,"upphandlingarMedVarde":15},{"id":"0684","year":2023,"upphandlingar":7,"anbudsomraden":7,"anbud":21.0,"snittAnbud":3.0,"miljoAndel":14.3,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":16630040,"upphandlingarMedVarde":6},{"id":"0684","year":2024,"upphandlingar":20,"anbudsomraden":24,"anbud":70.0,"snittAnbud":2.9,"miljoAndel":25.0,"socialAndel":12.5,"overprovadeAndel":0.0,"kontrakteratVarde":117650000,"upphandlingarMedVarde":12},{"id":"0685","year":2021,"upphandlingar":27,"anbudsomraden":33,"anbud":164.0,"snittAnbud":5.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.0,"kontrakteratVarde":344610000,"upphandlingarMedVarde":27},{"id":"0685","year":2022,"upphandlingar":28,"anbudsomraden":32,"anbud":125.0,"snittAnbud":3.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":3.1,"kontrakteratVarde":169760000,"upphandlingarMedVarde":26},{"id":"0685","year":2023,"upphandlingar":19,"anbudsomraden":27,"anbud":162.0,"snittAnbud":6.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":7.4,"kontrakteratVarde":101360000,"upphandlingarMedVarde":18},{"id":"0685","year":2024,"upphandlingar":17,"anbudsomraden":19,"anbud":51.0,"snittAnbud":3.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.3,"kontrakteratVarde":230771005,"upphandlingarMedVarde":14},{"id":"0686","year":2021,"upphandlingar":19,"anbudsomraden":21,"anbud":126.0,"snittAnbud":6.0,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":201788715,"upphandlingarMedVarde":19},{"id":"0686","year":2022,"upphandlingar":24,"anbudsomraden":24,"anbud":126.0,"snittAnbud":5.2,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":4.2,"kontrakteratVarde":257976700,"upphandlingarMedVarde":24},{"id":"0686","year":2023,"upphandlingar":13,"anbudsomraden":17,"anbud":59.0,"snittAnbud":3.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":49894928,"upphandlingarMedVarde":10},{"id":"0686","year":2024,"upphandlingar":11,"anbudsomraden":16,"anbud":43.0,"snittAnbud":2.7,"miljoAndel":0.0,"socialAndel":6.2,"overprovadeAndel":0.0,"kontrakteratVarde":96995545,"upphandlingarMedVarde":7},{"id":"0687","year":2021,"upphandlingar":22,"anbudsomraden":22,"anbud":54.0,"snittAnbud":2.5,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":82167260,"upphandlingarMedVarde":22},{"id":"0687","year":2022,"upphandlingar":20,"anbudsomraden":20,"anbud":39.0,"snittAnbud":1.9,"miljoAndel":0.0,"socialAndel":0.0,"overprovadeAndel":5.0,"kontrakteratVarde":21489477,"upphandlingarMedVarde":20},{"id":"0687","year":2023,"upphandlingar":10,"anbudsomraden":10,"anbud":24.0,"snittAnbud":2.4,"miljoAndel":10.0,"socialAndel":0.0,"overprovadeAndel":0.0,"kontrakteratVarde":103140887,"upphandlingarMedVarde":8},{"id":"0687","year":2024,"upphandlingar":24,"anbudsomraden":26,"anbud":80.0,"snittAnbud":3.2,"miljoAndel":46.2,"socialAndel":0.0,"overprovadeAndel":3.8,"kontrakteratVarde":63860414,"upphandlingarMedVarde":22}];
+const PROCUREMENT_BUSINESS_RANKING = [{"id":"0604","ranking2025":131,"ranking2026":226},{"id":"0686","ranking2025":71,"ranking2026":100},{"id":"0682","ranking2025":180,"ranking2026":85},{"id":"0684","ranking2025":162,"ranking2026":208},{"id":"0687","ranking2025":50,"ranking2026":128},{"id":"0685","ranking2025":63,"ranking2026":52},{"id":"0617","ranking2025":125,"ranking2026":240},{"id":"0642","ranking2025":59,"ranking2026":142},{"id":"0643","ranking2025":54,"ranking2026":30},{"id":"0662","ranking2025":248,"ranking2026":273},{"id":"0665","ranking2025":36,"ranking2026":37},{"id":"0680","ranking2025":113,"ranking2026":175},{"id":"0683","ranking2025":112,"ranking2026":167}];
 
 const municipalityCoordinates = {
-    "0760": [57.170, 15.344],
-    "0761": [56.751, 15.269],
-    "0763": [56.524, 14.979],
-    "0764": [56.899, 14.556],
-    "0765": [56.551, 14.139],
-    "0767": [56.461, 13.596],
-    "0780": [56.879, 14.805],
-    "0781": [56.833, 13.940]
+    "0604": [57.837, 14.812],
+    "0617": [57.358, 13.737],
+    "0642": [57.916, 13.879],
+    "0643": [57.911, 14.074],
+    "0662": [57.304, 13.540],
+    "0665": [57.499, 14.145],
+    "0680": [57.782, 14.161],
+    "0682": [57.654, 14.696],
+    "0683": [57.186, 14.040],
+    "0684": [57.404, 14.662],
+    "0685": [57.427, 15.085],
+    "0686": [57.667, 14.972],
+    "0687": [58.038, 14.978]
+};
+
+const municipalityBounds = {
+    "0604": [[57.70, 14.52], [58.00, 15.10]],
+    "0617": [[57.18, 13.38], [57.57, 14.02]],
+    "0642": [[57.78, 13.60], [58.08, 14.09]],
+    "0643": [[57.78, 13.82], [58.10, 14.28]],
+    "0662": [[56.98, 13.00], [57.50, 13.86]],
+    "0665": [[57.30, 13.72], [57.72, 14.40]],
+    "0680": [[57.52, 13.78], [58.16, 14.77]],
+    "0682": [[57.42, 14.30], [57.88, 15.05]],
+    "0683": [[57.00, 13.55], [57.48, 14.35]],
+    "0684": [[57.24, 14.42], [57.62, 15.02]],
+    "0685": [[57.12, 14.55], [57.72, 15.62]],
+    "0686": [[57.48, 14.55], [57.88, 15.42]],
+    "0687": [[57.92, 14.70], [58.18, 15.26]]
 };
 
 const colors = {
@@ -1431,7 +1717,7 @@ const colors = {
 const sections = {
     overview: {
         title: "Översikt",
-        note: "Ett första lager med breda kommunmått. Varje kort jämför vald kommun med Kronobergs län och riket.",
+        note: "Ett första lager med breda kommunmått. Arbetslöshet hämtas månadsvis från Arbetsförmedlingen, övriga kort hämtas från respektive källas senaste årsdata.",
         metrics: [
             metric("N01951", "Invånare totalt", "Befolkning", "number", "sum"),
             metric("N02012", "Befolkningsförändring", "Befolkning", "number", "sum"),
@@ -1447,7 +1733,7 @@ const sections = {
     },
     population: {
         title: "Befolkning",
-        note: "Befolkningsnivå, åldersstruktur och förändring. Länet summeras för antal och snittas för andelar/rater.",
+        note: "Befolkningsnivå, åldersstruktur och förändring. Höglandet summeras för antal och snittas för andelar/rater.",
         metrics: [
             metric("N01951", "Invånare totalt", "Volym", "number", "sum"),
             metric("N02012", "Befolkningsförändring", "Förändring", "number", "sum"),
@@ -1465,7 +1751,7 @@ const sections = {
     },
     migration: {
         title: "Migration",
-        note: "Migration, flyktingmottagande och etablering. Måtten hämtas direkt från Kolada och jämförs med samtliga kommuner i Kronobergs län.",
+        note: "Migration, flyktingmottagande och etablering. Måtten hämtas direkt från Kolada och jämförs med samtliga kommuner i Jönköpings län.",
         metrics: [
             metric("N01807", "Utrikes inflyttade", "Flyttningar", "number", "sum"),
             metric("N01808", "Utrikes utflyttade", "Flyttningar", "number", "sum", false),
@@ -1502,11 +1788,11 @@ const sections = {
     },
     work: {
         title: "Arbete och livsvillkor",
-        note: "Arbetsmarknad, inkomster, ohälsa och företagande.",
+        note: "Arbetsmarknad, inkomster, ohälsa och företagande. Arbetslöshet hämtas månadsvis från Arbetsförmedlingen, övriga mått hämtas från respektive källas senaste årsdata.",
         metrics: [
-            metric("N02267", "Sysselsättningsgrad 20-64 år", "Arbete", "percent", "avg"),
             afMonthlyMetric("AF_UNEMP_TOTAL", "Arbetslöshet 16-66 år", "Arbete", "total"),
             afMonthlyMetric("AF_UNEMP_YOUNG", "Arbetslöshet 18-24 år", "Arbete", "young"),
+            metric("N02267", "Sysselsättningsgrad 20-64 år", "Arbete", "percent", "avg"),
             metric("N00905", "Mediannettoinkomst 20+", "Inkomst", "currency", "avg"),
             metric("N66080", "Låg ekonomisk standard", "Inkomst", "percent", "avg", false),
             metric("N00957", "Ohälsotal", "Hälsa", "number", "avg", false, " dagar"),
@@ -1563,7 +1849,7 @@ const sections = {
     },
     economy: {
         title: "Ekonomi",
-        note: "Kommunal ekonomi och intäktsbas. Mått per invånare och procent jämförs med länet och riket.",
+        note: "Kommunal ekonomi och intäktsbas. Mått per invånare och procent snittas för Höglandet.",
         metrics: [
             metric("N03007", "Årets resultat", "Resultat", "currency", "avg", true, "/inv"),
             metric("N03102", "Resultatandel", "Resultat", "percent", "avg"),
@@ -1647,8 +1933,13 @@ const sections = {
         metrics: [
             metric("N00401", "Växthusgasutsläpp totalt", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85073", "Växthusgasutsläpp transporter", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85072", "Växthusgasutsläpp egen uppvärmning", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85075", "Växthusgasutsläpp arbetsmaskiner", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85076", "Växthusgasutsläpp el och fjärrvärme", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85078", "Växthusgasutsläpp jordbruk", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85077", "Växthusgasutsläpp industri", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85541", "Växthusgasutsläpp produktanvändning", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
+            metric("N85543", "Växthusgasutsläpp avfall och avlopp", "Utsläpp", "number", "avg", false, " ton CO2e/inv"),
             metric("N85047", "Kväveoxider totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
             metric("N85048", "PM2.5-partiklar totalt", "Utsläpp", "number", "avg", false, " kg/inv"),
             metric("N45905", "Slutanvändning energi totalt", "Energi", "number", "avg", false, " MWh/inv"),
@@ -1656,6 +1947,8 @@ const sections = {
             metric("N45920", "Slutanvändning energi hushåll", "Energi", "number", "avg", false, " MWh/inv"),
             metric("N45925", "Elproduktion från förnybara energikällor", "Energi", "percent", "avg"),
             metric("N45930", "Fjärrvärmeproduktion från förnybara energikällor", "Energi", "percent", "avg"),
+            metric("U07514", "Ekologiska livsmedel i kommunens verksamhet", "Livsmedel och jordbruk", "percent", "avg"),
+            metric("N00403", "Ekologiskt brukad åkermark", "Livsmedel och jordbruk", "percent", "avg"),
             metric("N85054", "Skyddad natur totalt", "Skyddad natur", "percent", "avg"),
             metric("N85055", "Skyddad natur land", "Skyddad natur", "percent", "avg"),
             metric("N85084", "Medelavstånd till skyddad natur", "Skyddad natur", "number", "avg", false, " km"),
@@ -1693,7 +1986,7 @@ function formatMetricPeriod(period, metricDef) {
 }
 
 function metricPeriodLabel(metricDef) {
-    return metricDef.afMonthlyKey ? "mätmånad" : "mätår";
+    return metricDef.afMonthlyKey ? "mätmånad" : "senaste mätår";
 }
 
 function crimeCountMetric(id, title) {
@@ -1737,12 +2030,9 @@ const vehicleOrganizationMetrics = [
     metric("U00505", "Fossiloberoende personbilar", "Kommunorganisationen", "percent", "avg")
 ];
 
-const embeddedVehicleTrafficData = {"source":"SCB/Trafikanalys Fordon i trafik efter län och kommun samt fordonsslag","latestYear":"2025","previousYear":"2024","updated":"2026-02-12","regions":{"0000":{"2024":{"10":4977791,"20":618274,"21":85034,"22":9647,"30":14178,"40":318381,"50":105351,"60":398239,"70":212504,"71":105323,"72":5624,"80":1341430},"2025":{"10":5039431,"20":627910,"21":86125,"22":9791,"30":14528,"40":320585,"50":106170,"60":408941,"70":214533,"71":105925,"72":5451,"80":1354310}},"0007":{"2024":{"10":103723,"20":12109,"21":2092,"22":267,"30":82,"40":6976,"50":2375,"60":12866,"70":175,"71":2525,"72":9,"80":34669},"2025":{"10":105085,"20":12454,"21":2122,"22":267,"30":143,"40":6972,"50":2379,"60":13096,"70":174,"71":2545,"72":9,"80":35009}},"0760":{"2024":{"10":5223,"20":826,"21":139,"22":11,"30":0,"40":452,"50":98,"60":856,"70":32,"71":200,"72":2,"80":2293},"2025":{"10":5249,"20":838,"21":168,"22":12,"30":0,"40":447,"50":89,"60":897,"70":32,"71":198,"72":2,"80":2306}},"0761":{"2024":{"10":4186,"20":473,"21":79,"22":5,"30":0,"40":258,"50":63,"60":336,"70":9,"71":67,"72":0,"80":1626},"2025":{"10":4222,"20":436,"21":79,"22":6,"30":0,"40":251,"50":62,"60":326,"70":10,"71":70,"72":0,"80":1603}},"0763":{"2024":{"10":7318,"20":1134,"21":126,"22":6,"30":7,"40":515,"50":116,"60":1534,"70":7,"71":221,"72":0,"80":3256},"2025":{"10":7398,"20":1194,"21":121,"22":7,"30":7,"40":519,"50":99,"60":1573,"70":6,"71":224,"72":0,"80":3301}},"0764":{"2024":{"10":10890,"20":1399,"21":223,"22":27,"30":1,"40":865,"50":271,"60":1707,"70":22,"71":318,"72":0,"80":3960},"2025":{"10":11021,"20":1483,"21":234,"22":24,"30":1,"40":863,"50":275,"60":1695,"70":22,"71":319,"72":0,"80":4037}},"0765":{"2024":{"10":9066,"20":964,"21":102,"22":5,"30":20,"40":587,"50":255,"60":1332,"70":9,"71":343,"72":1,"80":3161},"2025":{"10":9200,"20":1008,"21":97,"22":4,"30":13,"40":595,"50":265,"60":1372,"70":6,"71":350,"72":1,"80":3177}},"0767":{"2024":{"10":5831,"20":913,"21":216,"22":28,"30":6,"40":497,"50":154,"60":779,"70":14,"71":131,"72":1,"80":2453},"2025":{"10":5918,"20":911,"21":196,"22":18,"30":6,"40":480,"50":157,"60":791,"70":12,"71":132,"72":1,"80":2538}},"0780":{"2024":{"10":44990,"20":4263,"21":906,"22":138,"30":18,"40":2582,"50":1032,"60":3470,"70":55,"71":728,"72":5,"80":11858},"2025":{"10":45649,"20":4470,"21":926,"22":147,"30":82,"40":2578,"50":1047,"60":3552,"70":55,"71":743,"72":4,"80":11866}},"0781":{"2024":{"10":16219,"20":2137,"21":301,"22":47,"30":30,"40":1220,"50":386,"60":2852,"70":27,"71":517,"72":0,"80":6062},"2025":{"10":16428,"20":2114,"21":301,"22":49,"30":34,"40":1239,"50":385,"60":2890,"70":31,"71":509,"72":1,"80":6181}}}};
+const embeddedVehicleTrafficData = {"source":"SCB/Trafikanalys Fordon i trafik efter län och kommun samt fordonsslag","latestYear":"2025","previousYear":"2024","updated":"2026-02-12","regions":{"0000":{"2024":{"10":4977791,"20":618274,"21":85034,"22":9647,"30":14178,"40":318381,"50":105351,"60":398239,"70":212504,"71":105323,"72":5624,"80":1341430},"2025":{"10":5039431,"20":627910,"21":86125,"22":9791,"30":14528,"40":320585,"50":106170,"60":408941,"70":214533,"71":105925,"72":5451,"80":1354310}},"0006":{"2024":{"10":192630,"20":23097,"21":3805,"22":464,"30":319,"40":13614,"50":4035,"60":21354,"70":568,"71":4605,"72":22,"80":60947},"2025":{"10":195373,"20":23478,"21":3832,"22":484,"30":287,"40":13674,"50":4019,"60":21932,"70":572,"71":4634,"72":21,"80":61312}},"0604":{"2024":{"10":4062,"20":847,"21":75,"22":7,"30":53,"40":374,"50":101,"60":1014,"70":11,"71":176,"72":1,"80":1868},"2025":{"10":4127,"20":850,"21":77,"22":6,"30":53,"40":375,"50":92,"60":1027,"70":11,"71":179,"72":1,"80":1891}},"0617":{"2024":{"10":5395,"20":840,"21":86,"22":3,"30":1,"40":395,"50":146,"60":737,"70":26,"71":235,"72":0,"80":1741},"2025":{"10":5414,"20":845,"21":75,"22":3,"30":0,"40":382,"50":129,"60":748,"70":26,"71":233,"72":0,"80":1742}},"0642":{"2024":{"10":4100,"20":369,"21":77,"22":12,"30":5,"40":275,"50":108,"60":386,"70":12,"71":63,"72":1,"80":1427},"2025":{"10":4142,"20":387,"21":84,"22":12,"30":5,"40":294,"50":110,"60":404,"70":10,"71":62,"72":1,"80":1426}},"0643":{"2024":{"10":7027,"20":705,"21":112,"22":5,"30":58,"40":544,"50":227,"60":823,"70":32,"71":139,"72":1,"80":2402},"2025":{"10":7104,"20":712,"21":104,"22":11,"30":58,"40":570,"50":277,"60":854,"70":34,"71":146,"72":1,"80":2393}},"0662":{"2024":{"10":16501,"20":2195,"21":308,"22":31,"30":31,"40":1084,"50":251,"60":2062,"70":45,"71":638,"72":2,"80":5001},"2025":{"10":16594,"20":2180,"21":321,"22":33,"30":32,"40":1063,"50":239,"60":2084,"70":46,"71":654,"72":2,"80":5013}},"0665":{"2024":{"10":8084,"20":1018,"21":165,"22":7,"30":10,"40":584,"50":224,"60":1171,"70":35,"71":264,"72":1,"80":3006},"2025":{"10":8231,"20":1061,"21":194,"22":15,"30":3,"40":598,"50":207,"60":1201,"70":34,"71":277,"72":1,"80":3092}},"0680":{"2024":{"10":70822,"20":7532,"21":1298,"22":250,"30":83,"40":4344,"50":1490,"60":4398,"70":221,"71":929,"72":7,"80":19425},"2025":{"10":72321,"20":7668,"21":1302,"22":250,"30":78,"40":4314,"50":1524,"60":4603,"70":217,"71":924,"72":6,"80":19399}},"0682":{"2024":{"10":16638,"20":1755,"21":215,"22":18,"30":40,"40":1375,"50":235,"60":2101,"70":44,"71":487,"72":2,"80":4976},"2025":{"10":16855,"20":1775,"21":220,"22":22,"30":21,"40":1384,"50":257,"60":2144,"70":46,"71":484,"72":2,"80":5046}},"0683":{"2024":{"10":19498,"20":2190,"21":671,"22":81,"30":13,"40":1381,"50":307,"60":2312,"70":45,"71":532,"72":1,"80":6341},"2025":{"10":19731,"20":2234,"21":673,"22":86,"30":4,"40":1381,"50":287,"60":2388,"70":44,"71":543,"72":1,"80":6414}},"0684":{"2024":{"10":6477,"20":857,"21":105,"22":12,"30":1,"40":547,"50":106,"60":1518,"70":22,"71":262,"72":3,"80":2422},"2025":{"10":6582,"20":889,"21":114,"22":12,"30":1,"40":562,"50":107,"60":1546,"70":23,"71":250,"72":3,"80":2493}},"0685":{"2024":{"10":15534,"20":2242,"21":267,"22":17,"30":11,"40":1410,"50":354,"60":2506,"70":41,"71":470,"72":2,"80":5924},"2025":{"10":15652,"20":2301,"21":271,"22":19,"30":19,"40":1423,"50":362,"60":2533,"70":44,"71":478,"72":2,"80":5933}},"0686":{"2024":{"10":9371,"20":1333,"21":140,"22":8,"30":9,"40":745,"50":229,"60":1458,"70":23,"71":245,"72":1,"80":3499},"2025":{"10":9447,"20":1353,"21":135,"22":5,"30":9,"40":772,"50":199,"60":1511,"70":24,"71":247,"72":1,"80":3519}},"0687":{"2024":{"10":9121,"20":1214,"21":286,"22":13,"30":4,"40":556,"50":257,"60":868,"70":11,"71":165,"72":0,"80":2915},"2025":{"10":9173,"20":1223,"21":262,"22":10,"30":4,"40":556,"50":229,"60":889,"70":13,"71":157,"72":0,"80":2951}}}};
 
-const afMonthlyUnemploymentData = {"source":"Arbetsförmedlingen, Andel inskrivna arbetslösa av arbetskraften BAS","sourcePeriod":"2026-06","regions":{"0760":{"total":[{"period":"2026-01","value":7.076027989621824},{"period":"2026-02","value":7.141168124852211},{"period":"2026-03","value":7.113359283921832},{"period":"2026-04","value":7.012678288431061},{"period":"2026-05","value":6.835096354218349},{"period":"2026-06","value":7.057981957636213}],"young":[{"period":"2026-01","value":7.37856118056979},{"period":"2026-02","value":8.679479231246125},{"period":"2026-03","value":8.226007478188615},{"period":"2026-04","value":8.011683705403714},{"period":"2026-05","value":5.775266792215945},{"period":"2026-06","value":7.582139848357203}]},"0761":{"total":[{"period":"2026-01","value":9.436861610774654},{"period":"2026-02","value":9.579592482869355},{"period":"2026-03","value":9.050962627406568},{"period":"2026-04","value":8.68756099221569},{"period":"2026-05","value":8.621708880905825},{"period":"2026-06","value":8.63584604873605}],"young":[{"period":"2026-01","value":9.593940669051126},{"period":"2026-02","value":11.03448275862069},{"period":"2026-03","value":8.986894112752235},{"period":"2026-04","value":7.461139896373058},{"period":"2026-05","value":8.942247981784309},{"period":"2026-06","value":10.430463576158939}]},"0763":{"total":[{"period":"2026-01","value":6.260707054975861},{"period":"2026-02","value":6.300832008974479},{"period":"2026-03","value":6.215288611544461},{"period":"2026-04","value":5.8642601758029},{"period":"2026-05","value":5.739562655329259},{"period":"2026-06","value":5.459406219220487}],"young":[{"period":"2026-01","value":7.44246776562755},{"period":"2026-02","value":8.43275044941984},{"period":"2026-03","value":7.675906183368871},{"period":"2026-04","value":7.464396791618923},{"period":"2026-05","value":6.295081967213115},{"period":"2026-06","value":6.897684348825751}]},"0764":{"total":[{"period":"2026-01","value":8.084259471264772},{"period":"2026-02","value":7.987445780583277},{"period":"2026-03","value":7.752594789239568},{"period":"2026-04","value":7.864612775579424},{"period":"2026-05","value":7.826225277929974},{"period":"2026-06","value":8.119280641628096}],"young":[{"period":"2026-01","value":9.784567848253369},{"period":"2026-02","value":9.489427539969055},{"period":"2026-03","value":8.891952438393934},{"period":"2026-04","value":9.204516073429286},{"period":"2026-05","value":9.210072438771991},{"period":"2026-06","value":10.137057150245669}]},"0765":{"total":[{"period":"2026-01","value":6.651264827505872},{"period":"2026-02","value":6.661878603179533},{"period":"2026-03","value":6.6758577836462845},{"period":"2026-04","value":6.468531468531468},{"period":"2026-05","value":6.435816719132564},{"period":"2026-06","value":6.617347235976001}],"young":[{"period":"2026-01","value":8.286516853932584},{"period":"2026-02","value":8.96463172639197},{"period":"2026-03","value":8.683473389355742},{"period":"2026-04","value":8.233515525061053},{"period":"2026-05","value":8.060220034742327},{"period":"2026-06","value":9.704251386321626}]},"0767":{"total":[{"period":"2026-01","value":7.314588062849686},{"period":"2026-02","value":7.297050775311645},{"period":"2026-03","value":7.4364623072376554},{"period":"2026-04","value":6.922622140208181},{"period":"2026-05","value":6.413544487687645},{"period":"2026-06","value":6.497185270178206}],"young":[{"period":"2026-01","value":9.737167048862233},{"period":"2026-02","value":9.106953759265796},{"period":"2026-03","value":8.942512420156138},{"period":"2026-04","value":8.75912408759124},{"period":"2026-05","value":7.502679528403002},{"period":"2026-06","value":9.428571428571427}]},"0780":{"total":[{"period":"2026-01","value":6.94710859318077},{"period":"2026-02","value":6.902383036348322},{"period":"2026-03","value":6.839006640229024},{"period":"2026-04","value":6.654640340786244},{"period":"2026-05","value":6.555981268624947},{"period":"2026-06","value":6.680176964008634}],"young":[{"period":"2026-01","value":7.649402390438248},{"period":"2026-02","value":7.4891839474862},{"period":"2026-03","value":7.174018419777024},{"period":"2026-04","value":6.739734179726245},{"period":"2026-05","value":6.450973591636526},{"period":"2026-06","value":7.527467088983471}]},"0781":{"total":[{"period":"2026-01","value":4.94963684729653},{"period":"2026-02","value":5.067531193549544},{"period":"2026-03","value":5.029187247418051},{"period":"2026-04","value":4.95398331895312},{"period":"2026-05","value":4.8436141182115335},{"period":"2026-06","value":4.836939244348207}],"young":[{"period":"2026-01","value":6.213275932282273},{"period":"2026-02","value":6.279069767441861},{"period":"2026-03","value":6.069061737007324},{"period":"2026-04","value":5.578476378639084},{"period":"2026-05","value":5.1543998142558625},{"period":"2026-06","value":6.404826826013807}]},"0007":{"total":[{"period":"2026-01","value":6.828977488319881},{"period":"2026-02","value":6.823911592079958},{"period":"2026-03","value":6.747078434288345},{"period":"2026-04","value":6.5765090487246685},{"period":"2026-05","value":6.465042121031255},{"period":"2026-06","value":6.568613356446414}],"young":[{"period":"2026-01","value":7.8227869936463215},{"period":"2026-02","value":7.868089568102494},{"period":"2026-03","value":7.466214517160368},{"period":"2026-04","value":7.075481848634614},{"period":"2026-05","value":6.718327729947885},{"period":"2026-06","value":7.891852393131166}]},"0000":{"total":[{"period":"2026-01","value":6.814663020226368},{"period":"2026-02","value":6.758773125166585},{"period":"2026-03","value":6.642092994027822},{"period":"2026-04","value":6.480803392828028},{"period":"2026-05","value":6.359899988285759},{"period":"2026-06","value":6.447386041585309}],"young":[{"period":"2026-01","value":7.544858029221242},{"period":"2026-02","value":7.3824955279197235},{"period":"2026-03","value":7.082220042615077},{"period":"2026-04","value":6.678673674990679},{"period":"2026-05","value":6.36913532857019},{"period":"2026-06","value":7.2551845645179}]}},"areas":{}};
-
-
-
+const afMonthlyUnemploymentData = {"source":"Arbetsförmedlingen, Andel inskrivna arbetslösa av arbetskraften BAS","sourcePeriod":"2026-06","regions":{"0604":{"total":[{"period":"2026-01","value":4.959174472774634},{"period":"2026-02","value":4.8431977137700235},{"period":"2026-03","value":4.788074983061056},{"period":"2026-04","value":4.579462716545318},{"period":"2026-05","value":4.580727793264522},{"period":"2026-06","value":4.759752974845609}],"young":[{"period":"2026-01","value":6.376195536663124},{"period":"2026-02","value":7.04375667022412},{"period":"2026-03","value":7.71290840921264},{"period":"2026-04","value":7.417360924482666},{"period":"2026-05","value":8.70265914585012},{"period":"2026-06","value":8.407437348423606}]},"0617":{"total":[{"period":"2026-01","value":4.170528266913809},{"period":"2026-02","value":4.2377869334902885},{"period":"2026-03","value":3.9611733637855973},{"period":"2026-04","value":3.643312556926759},{"period":"2026-05","value":3.7094612704368806},{"period":"2026-06","value":4.011799410029498}],"young":[{"period":"2026-01","value":6.116207951070336},{"period":"2026-02","value":5.316973415132924},{"period":"2026-03","value":4.101161995898838},{"period":"2026-04","value":4.107479034742427},{"period":"2026-05","value":4.107479034742427},{"period":"2026-06","value":6.377507286130636}]},"0642":{"total":[{"period":"2026-01","value":5.145916877216568},{"period":"2026-02","value":5.1460361613351875},{"period":"2026-03","value":5.091937765205092},{"period":"2026-04","value":5.23312456506611},{"period":"2026-05","value":5.145320539563343},{"period":"2026-06","value":5.193482688391039}],"young":[{"period":"2026-01","value":11.039283938339134},{"period":"2026-02","value":11.363070022427111},{"period":"2026-03","value":11.967090501121914},{"period":"2026-04","value":11.662098180912036},{"period":"2026-05","value":10.751617720258835},{"period":"2026-06","value":11.928429423459246}]},"0643":{"total":[{"period":"2026-01","value":3.2209212130166587},{"period":"2026-02","value":3.3210332103321036},{"period":"2026-03","value":3.023152927296859},{"period":"2026-04","value":2.9472443265546713},{"period":"2026-05","value":2.841927013031634},{"period":"2026-06","value":3.162539838195636}],"young":[{"period":"2026-01","value":5.475880052151239},{"period":"2026-02","value":6.216006216006216},{"period":"2026-03","value":5.405405405405405},{"period":"2026-04","value":4.304932735426009},{"period":"2026-05","value":3.978576893649579},{"period":"2026-06","value":5.175694532538374}]},"0662":{"total":[{"period":"2026-01","value":6.255684919046753},{"period":"2026-02","value":5.964716721453189},{"period":"2026-03","value":5.941608331910534},{"period":"2026-04","value":5.801260697996208},{"period":"2026-05","value":5.647991977025118},{"period":"2026-06","value":5.516219988037937}],"young":[{"period":"2026-01","value":6.6345059352810445},{"period":"2026-02","value":5.970149253731343},{"period":"2026-03","value":6.349206349206349},{"period":"2026-04","value":6.069084256967611},{"period":"2026-05","value":5.854600042890843},{"period":"2026-06","value":6.715344028140489}]},"0665":{"total":[{"period":"2026-01","value":4.715335879379236},{"period":"2026-02","value":4.685897082345155},{"period":"2026-03","value":4.404033724582575},{"period":"2026-04","value":4.070619073317401},{"period":"2026-05","value":4.0932648188290175},{"period":"2026-06","value":4.16469890500928}],"young":[{"period":"2026-01","value":5.7944355024143475},{"period":"2026-02","value":6.023958927552767},{"period":"2026-03","value":5.014682629320081},{"period":"2026-04","value":4.434490481522957},{"period":"2026-05","value":4.131038312048862},{"period":"2026-06","value":6.216931216931217}]},"0680":{"total":[{"period":"2026-01","value":5.8008345448218215},{"period":"2026-02","value":5.761154571261404},{"period":"2026-03","value":5.614637046856876},{"period":"2026-04","value":5.520822731219912},{"period":"2026-05","value":5.300355651569695},{"period":"2026-06","value":5.268074946800228}],"young":[{"period":"2026-01","value":5.903504534964847},{"period":"2026-02","value":5.913493728518501},{"period":"2026-03","value":5.276630662611379},{"period":"2026-04","value":4.984401461805865},{"period":"2026-05","value":4.486780023146087},{"period":"2026-06","value":4.60162818630722}]},"0682":{"total":[{"period":"2026-01","value":7.497405741957801},{"period":"2026-02","value":7.526358475263585},{"period":"2026-03","value":7.303337354677112},{"period":"2026-04","value":7.190023598692329},{"period":"2026-05","value":6.952340729670901},{"period":"2026-06","value":6.794229884435303}],"young":[{"period":"2026-01","value":9.388377700142696},{"period":"2026-02","value":8.845208845208846},{"period":"2026-03","value":8.000784390626531},{"period":"2026-04","value":7.881580237231643},{"period":"2026-05","value":7.5663522166283785},{"period":"2026-06","value":9.18889918548505}]},"0683":{"total":[{"period":"2026-01","value":5.00280606109196},{"period":"2026-02","value":4.799524575395833},{"period":"2026-03","value":4.523430976160934},{"period":"2026-04","value":4.326405798742851},{"period":"2026-05","value":4.322109506658296},{"period":"2026-06","value":4.246304535525056}],"young":[{"period":"2026-01","value":7.3897604171348945},{"period":"2026-02","value":6.6705518447124215},{"period":"2026-03","value":5.5779029230356665},{"period":"2026-04","value":5.570185226511939},{"period":"2026-05","value":5.292938293606594},{"period":"2026-06","value":5.4989544868087386}]},"0684":{"total":[{"period":"2026-01","value":7.7589430387635545},{"period":"2026-02","value":7.51589181104325},{"period":"2026-03","value":7.178800105937155},{"period":"2026-04","value":6.844426436441271},{"period":"2026-05","value":6.657316503038803},{"period":"2026-06","value":6.408420003736688}],"young":[{"period":"2026-01","value":8.143644846599745},{"period":"2026-02","value":7.309817254568636},{"period":"2026-03","value":7.145895363675033},{"period":"2026-04","value":6.811409110259685},{"period":"2026-05","value":6.794055201698514},{"period":"2026-06","value":7.0896047264031505}]},"0685":{"total":[{"period":"2026-01","value":6.392148387342835},{"period":"2026-02","value":6.235252965306707},{"period":"2026-03","value":5.98644650186122},{"period":"2026-04","value":5.730804987073852},{"period":"2026-05","value":5.549221312780662},{"period":"2026-06","value":5.660125144017466}],"young":[{"period":"2026-01","value":8.183828950602114},{"period":"2026-02","value":7.377805102981863},{"period":"2026-03","value":6.504065040650407},{"period":"2026-04","value":5.854020007410152},{"period":"2026-05","value":5.713579025476132},{"period":"2026-06","value":6.395637084779375}]},"0686":{"total":[{"period":"2026-01","value":6.028527855028258},{"period":"2026-02","value":5.988524982070285},{"period":"2026-03","value":5.7124077559678526},{"period":"2026-04","value":5.354261697508118},{"period":"2026-05","value":5.328925751496023},{"period":"2026-06","value":5.251327750482366}],"young":[{"period":"2026-01","value":7.403996684777605},{"period":"2026-02","value":7.711374277058662},{"period":"2026-03","value":7.043286867204696},{"period":"2026-04","value":5.609532538955087},{"period":"2026-05","value":5.2535570959503834},{"period":"2026-06","value":6.420603972068559}]},"0687":{"total":[{"period":"2026-01","value":6.636979890518195},{"period":"2026-02","value":6.52488439606994},{"period":"2026-03","value":6.242846738112579},{"period":"2026-04","value":6.0274128096711035},{"period":"2026-05","value":5.972691401481818},{"period":"2026-06","value":5.855706760731207}],"young":[{"period":"2026-01","value":8.085287846481876},{"period":"2026-02","value":8.07702138536253},{"period":"2026-03","value":7.15929429813347},{"period":"2026-04","value":6.542294914387938},{"period":"2026-05","value":6.141772583809605},{"period":"2026-06","value":6.955335833617457}]},"0006":{"total":[{"period":"2026-01","value":5.842676913270331},{"period":"2026-02","value":5.763266226808775},{"period":"2026-03","value":5.571900792418276},{"period":"2026-04","value":5.414755773407706},{"period":"2026-05","value":5.2665755220861525},{"period":"2026-06","value":5.240467578206574}],"young":[{"period":"2026-01","value":6.834679850476305},{"period":"2026-02","value":6.644358313873709},{"period":"2026-03","value":6.0154352895919985},{"period":"2026-04","value":5.6448545749344445},{"period":"2026-05","value":5.294096490982692},{"period":"2026-06","value":5.883549757644666}]},"0000":{"total":[{"period":"2026-01","value":6.814663020226368},{"period":"2026-02","value":6.758773125166585},{"period":"2026-03","value":6.642092994027822},{"period":"2026-04","value":6.480803392828028},{"period":"2026-05","value":6.359899988285759},{"period":"2026-06","value":6.447386041585309}],"young":[{"period":"2026-01","value":7.544858029221242},{"period":"2026-02","value":7.3824955279197235},{"period":"2026-03","value":7.082220042615077},{"period":"2026-04","value":6.678673674990679},{"period":"2026-05","value":6.36913532857019},{"period":"2026-06","value":7.2551845645179}]}},"areas":{"highland":{"total":[{"period":"2026-01","value":6.736076843624817},{"period":"2026-02","value":6.651124078595832},{"period":"2026-03","value":6.403199146240114},{"period":"2026-04","value":6.173725771715722},{"period":"2026-05","value":6.031446000515508},{"period":"2026-06","value":5.9687670098666805}],"young":[{"period":"2026-01","value":8.294772922022279},{"period":"2026-02","value":7.948381202535259},{"period":"2026-03","value":7.262553883924748},{"period":"2026-04","value":6.701612557667862},{"period":"2026-05","value":6.521553076769463},{"period":"2026-06","value":7.485260189694951}]}}};
 
 function currentMunicipality() {
     return municipalities.find(item => item.id === selectedMunicipality) || municipalities.find(item => item.id === DEFAULT_MUNICIPALITY);
@@ -1805,7 +2095,6 @@ function activeTabId() {
     return document.querySelector(".tab-btn.active")?.dataset.tab || "overview";
 }
 
-
 function renderProcurementTab() {
     const main = document.getElementById("main");
     const latestYear = Math.max(...PROCUREMENT_DATA.map(row => row.year));
@@ -1813,6 +2102,7 @@ function renderProcurementTab() {
     const selectedLatest = procurementRow(selected.id, latestYear);
     const previous = procurementRow(selected.id, latestYear - 1);
     const countyLatest = procurementAggregate(countyMunicipalityIds, latestYear);
+    const highlandLatest = procurementAggregate(highlandIds, latestYear);
     const selectedBusinessRank = procurementBusinessRank(selected.id);
     const latestRows = countyMunicipalityIds
         .map(id => procurementRow(id, latestYear))
@@ -1836,11 +2126,12 @@ function renderProcurementTab() {
             </div>
             <article class="comparison">
                 <h2 class="comparison-title">Offentliga affärer ${latestYear}</h2>
-                <div class="meta">Vald kommun jämförs med Kronobergs län och övriga kommuner i länet.</div>
+                <div class="meta">Vald kommun jämförs med Höglandet, Jönköpings län och övriga kommuner i länet.</div>
                 <div class="chart-wrap"><canvas id="procurement-chart" width="1100" height="320"></canvas></div>
                 <div class="legend">
                     <span><i style="background:${colors.selected}"></i>${escapeHtml(selected.name)}</span>
-                    <span><i style="background:${colors.county}"></i>Kronobergs län</span>
+                    <span><i style="background:${colors.highland}"></i>Höglandet</span>
+                    <span><i style="background:${colors.county}"></i>Jönköpings län</span>
                     <span><i style="background:${colors.other}"></i>Övriga kommuner</span>
                 </div>
                 <table>
@@ -1860,7 +2151,8 @@ function renderProcurementTab() {
                     </thead>
                     <tbody>
                         ${latestRows.map(row => procurementTableRow(row, row.id === selected.id)).join("")}
-                        ${procurementSummaryRow("Kronobergs län", countyLatest)}
+                        ${procurementSummaryRow("Höglandet", highlandLatest, "highland")}
+                        ${procurementSummaryRow("Jönköpings län", countyLatest, "county")}
                     </tbody>
                 </table>
             </article>
@@ -1945,10 +2237,11 @@ function procurementTableRow(row, selected) {
         </tr>`;
 }
 
-function procurementSummaryRow(label, row) {
-    const ranking = procurementRankingAverage(countyMunicipalityIds);
+function procurementSummaryRow(label, row, type) {
+    const ids = type === "county" ? countyMunicipalityIds : highlandIds;
+    const ranking = procurementRankingAverage(ids);
     return `
-        <tr class="summary-row">
+        <tr class="${type === "county" ? "county-row" : ""}">
             <td><strong>${label}</strong></td>
             <td><strong>${formatInteger(row.upphandlingar)}</strong></td>
             <td><strong>${procurementMoney(row.kontrakteratVarde)}</strong></td>
@@ -1983,10 +2276,6 @@ function procurementDelta(current, previous, suffix) {
 
 function procurementNumber(value) {
     return Number.isFinite(value) ? value.toLocaleString("sv-SE", { maximumFractionDigits: 1 }) : "-";
-}
-
-function formatInteger(value) {
-    return Number.isFinite(value) ? Math.round(value).toLocaleString("sv-SE") : "-";
 }
 
 function procurementPercent(value) {
@@ -2098,8 +2387,12 @@ async function renderActiveTab(tabId = activeTabId()) {
         await renderMetricMapTab();
         return;
     }
+    if (tabId === "budgetsimulator") {
+        await renderBudgetSimulatorTab();
+        return;
+    }
     if (tabId === "procurement") {
-        renderProcurementTab();
+        await renderProcurementTab();
         return;
     }
 
@@ -2114,6 +2407,7 @@ async function renderActiveTab(tabId = activeTabId()) {
             </div>
             ${tabId === "population" ? `${dependencyRatioSection(tabId)}${populationShareSection(tabId)}` : ""}
             ${tabId === "business" ? commutingFlowSection(tabId) : ""}
+            ${tabId === "housing" ? trafficSafetyCameraSection(tabId) : ""}
             <article class="comparison">
                 <div class="comparison-head">
                     <div>
@@ -2137,7 +2431,7 @@ async function renderActiveTab(tabId = activeTabId()) {
                             <th>Område</th>
                             <th>Senaste värde</th>
                             <th>Senaste period</th>
-                            <th>Förändring från föregående mätperiod</th>
+                            <th>Förändring från föregående mätår</th>
                         </tr>
                     </thead>
                     <tbody id="${tabId}-table"><tr><td colspan="4">Laddar...</td></tr></tbody>
@@ -2154,6 +2448,7 @@ async function renderActiveTab(tabId = activeTabId()) {
 
     const select = document.getElementById(`${tabId}-metric`);
     select.addEventListener("change", () => renderComparison(tabId, section.metrics.find(item => item.id === select.value)));
+    if (tabId === "housing") renderTrafficSafetyCameraMap(tabId);
 
     try {
         const rows = await Promise.all(section.metrics.map(loadMetricBundle));
@@ -2172,6 +2467,292 @@ async function renderActiveTab(tabId = activeTabId()) {
             setStatus("Kunde inte ladda alla värden");
         }
     }
+}
+
+const simulatorMetrics = {
+    population: metric("N01951", "Invånare totalt", "Befolkning", "number", "sum"),
+    age0to19: metric("N01919", "Invånare 0-19 år", "Befolkning", "number", "sum"),
+    workingAge: metric("N01955", "Invånare 20-64 år", "Befolkning", "number", "sum"),
+    age80plus: metric("N01957", "Invånare 80+", "Befolkning", "number", "sum"),
+    resultPerCapita: metric("N03007", "Årets resultat", "Ekonomi", "currency", "avg", true, "/inv"),
+    debtPerCapita: metric("N03040", "Skulder totalt", "Ekonomi", "currency", "avg", false, "/inv"),
+    longDebtPerCapita: metric("N03046", "Långfristiga skulder", "Ekonomi", "currency", "avg", false, "/inv"),
+    taxRate: metric("N00900", "Skattesats totalt", "Ekonomi", "percent", "avg", false),
+    taxBasePerCapita: metric("N00903", "Skattekraft", "Ekonomi", "currency", "avg", true, "/inv"),
+    netInvestmentPerCapita: metric("N03132", "Nettoinvesteringar", "Ekonomi", "currency", "avg", true, "/inv")
+};
+
+async function renderBudgetSimulatorTab() {
+    const main = document.getElementById("main");
+    setStatus("Laddar budgetsimulator...");
+    main.innerHTML = `
+        <section class="tab-panel active" id="budgetsimulator">
+            <div class="info">Scenarioverktyget använder Koladas senaste värden för vald kommun som bas. Reglagen är en schablonmodell för att förstå riktning och storleksordning, inte en beslutad budgetprognos.</div>
+            <div id="simulator-loading" class="loading">Laddar basvärden...</div>
+        </section>`;
+
+    try {
+        const base = await loadBudgetSimulatorBase();
+        renderBudgetSimulatorShell(base);
+        updateBudgetSimulator(base);
+        setStatus(`Budgetsimulator laddad: ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`);
+    } catch (error) {
+        console.error(error);
+        document.getElementById("simulator-loading").innerHTML = `<div class="error">Kunde inte ladda basvärden för budgetsimulatorn.</div>`;
+        setStatus("Kunde inte ladda budgetsimulator");
+    }
+}
+
+async function loadBudgetSimulatorBase() {
+    const entries = await Promise.all(Object.entries(simulatorMetrics).map(async ([key, def]) => {
+        const bundle = await loadMetricBundle(def);
+        return [key, bundle.byId[selectedMunicipality]?.latest || null];
+    }));
+    const values = Object.fromEntries(entries);
+    const population = values.population?.value || 0;
+    const resultPerCapita = values.resultPerCapita?.value || 0;
+    const taxRate = values.taxRate?.value || 0;
+    const taxBasePerCapita = values.taxBasePerCapita?.value || 0;
+    const taxRevenuePerCapita = taxBasePerCapita * (taxRate / 100);
+    const operatingCostPerCapita = Math.max(0, taxRevenuePerCapita - resultPerCapita);
+    const assumedWorkingResidents = Math.round((values.workingAge?.value || population * 0.55) * 0.78);
+
+    return {
+        municipality: currentMunicipality().name,
+        period: values.population?.period || values.resultPerCapita?.period || "-",
+        population,
+        age0to19: values.age0to19?.value || 0,
+        workingAge: values.workingAge?.value || 0,
+        assumedWorkingResidents,
+        age80plus: values.age80plus?.value || 0,
+        resultPerCapita,
+        debtPerCapita: values.debtPerCapita?.value || 0,
+        longDebtPerCapita: values.longDebtPerCapita?.value || 0,
+        taxRate,
+        taxBasePerCapita,
+        taxRevenuePerCapita,
+        operatingCostPerCapita,
+        netInvestmentPerCapita: values.netInvestmentPerCapita?.value || 0
+    };
+}
+
+function renderBudgetSimulatorShell(base) {
+    document.getElementById("budgetsimulator").innerHTML = `
+        <div class="info">Bas: ${escapeHtml(base.municipality)}, mätår ${escapeHtml(base.period)}. Kommunens organisationsvärden visas både per invånare och som uppskattad total.</div>
+        <div class="simulator-layout">
+            <article class="comparison">
+                <h2 class="comparison-title">Antaganden</h2>
+                <div class="meta">Ändra scenariot med reglagen. Åldersreglagen lägger på schablonkostnader för yngre och äldre invånare.</div>
+                <div class="simulator-controls">
+                    ${simulatorRange("populationChange", "Fler/färre invånare", -3000, 3000, 100, 0, " inv")}
+                    ${simulatorRange("workingResidents", "Arbetsföra invånare som arbetar", 0, Math.max(base.population, Math.ceil(base.assumedWorkingResidents * 1.5 / 100) * 100), 10, base.assumedWorkingResidents, " personer")}
+                    ${simulatorRange("age0to19Change", "Förändring 0-19 år", -1500, 1500, 50, 0, " inv")}
+                    ${simulatorRange("age80plusChange", "Förändring 80+ år", -600, 600, 25, 0, " inv")}
+                    ${simulatorRange("taxBaseChange", "Förändrad skattekraft", -15, 15, 0.5, 0, "%")}
+                    ${simulatorRange("taxRateChange", "Ändrad kommunalskatt", -2, 2, 0.1, 0, " procentenheter")}
+                    ${simulatorRange("stateGrantChange", "Statsbidrag och utjämning", -50000, 50000, 1000, 0, " kr/inv")}
+                    ${simulatorRange("costChange", "Ändrade kostnader per invånare", -15000, 15000, 500, 0, " kr/inv")}
+                    ${simulatorRange("investmentLevel", "Investeringsnivå", 0, Math.max(50000, Math.ceil((base.netInvestmentPerCapita || 0) * 2 / 1000) * 1000), 1000, Math.max(0, Math.round(base.netInvestmentPerCapita || 0)), " kr/inv")}
+                </div>
+            </article>
+            <div class="simulator-summary">
+                <div class="kpi-grid" id="simulator-cards"></div>
+                <article class="comparison">
+                    <h2 class="comparison-title">Budgeteffekt</h2>
+                    <div class="meta" id="simulator-note"></div>
+                    <table class="simulator-table">
+                        <thead>
+                            <tr>
+                                <th>Mått</th>
+                                <th>Bas</th>
+                                <th>Scenario</th>
+                                <th>Skillnad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="simulator-table"></tbody>
+                    </table>
+                </article>
+            </div>
+        </div>`;
+
+    document.querySelectorAll("[data-sim-control]").forEach(input => {
+        input.addEventListener("input", () => updateBudgetSimulator(base));
+    });
+}
+
+function simulatorRange(id, label, min, max, step, value, suffix) {
+    return `
+        <div class="simulator-control">
+            <div class="simulator-control-row">
+                <label for="${id}">${label}</label>
+                <span class="simulator-control-value" id="${id}-value"></span>
+            </div>
+            <input id="${id}" data-sim-control type="range" min="${min}" max="${max}" step="${step}" value="${value}" data-suffix="${escapeHtml(suffix)}">
+        </div>`;
+}
+
+function updateBudgetSimulator(base) {
+    const scenario = budgetScenario(base);
+    const cards = [
+        ["Invånare", formatInteger(scenario.population), formatSigned(scenario.population - base.population, " inv"), ""],
+        ["Resultat", formatMillion(scenario.resultTotal), formatSignedMillion(scenario.resultTotal - base.resultTotal), resultTone(scenario.resultTotal - base.resultTotal)],
+        ["Resultat per invånare", formatCurrency(scenario.resultPerCapita, " kr/inv"), formatSignedCurrency(scenario.resultPerCapita - base.resultPerCapita, " kr/inv"), resultTone(scenario.resultPerCapita - base.resultPerCapita)],
+        ["Skulder totalt", formatMillion(scenario.debtTotal), formatSignedMillion(scenario.debtTotal - base.debtTotal), debtTone(scenario.debtTotal - base.debtTotal)]
+    ];
+
+    document.getElementById("simulator-cards").innerHTML = cards.map(([title, value, meta, toneClass]) => `
+        <article class="card">
+            <h3>${title}</h3>
+            <div class="value">${value}</div>
+            <div class="meta delta ${toneClass}">${meta}</div>
+        </article>
+    `).join("");
+
+    document.getElementById("simulator-note").textContent =
+        `Skatteintäkt beräknas som skattekraft per invånare multiplicerat med skattesats och justeras med antaget antal arbetsföra som arbetar. Statsbidrag/utjämning visas som förändring från nuvarande nivå eftersom basutfallet redan ligger inbakat i Koladas resultat. 20-64 år används som proxy för 18-67. Kostnad för ändrad åldersstruktur är schablon: 95 000 kr per 0-19-åring och 230 000 kr per 80+-invånare.`;
+
+    const rows = [
+        ["Skatteintäkter", base.taxRevenueTotal, scenario.taxRevenueTotal, "mnkr"],
+        ["Statsbidrag och utjämning, förändring", 0, scenario.stateGrantTotal, "mnkr"],
+        ["Driftskostnader", base.operatingCostTotal, scenario.operatingCostTotal, "mnkr"],
+        ["Åldersrelaterad kostnadseffekt", 0, scenario.ageCostEffect, "mnkr"],
+        ["Arbetsföra som arbetar", base.assumedWorkingResidents, scenario.workingResidents, "persons"],
+        ["Nettoinvesteringar", base.investmentTotal, scenario.investmentTotal, "mnkr"],
+        ["Resultat", base.resultTotal, scenario.resultTotal, "mnkr"],
+        ["Skulder totalt", base.debtTotal, scenario.debtTotal, "mnkr"],
+        ["Långfristiga skulder", base.longDebtTotal, scenario.longDebtTotal, "mnkr"],
+        ["Kommunalskatt", base.taxRate, scenario.taxRate, "percent"],
+        ["Skattekraft", base.taxBasePerCapita, scenario.taxBasePerCapita, "krinv"]
+    ];
+
+    document.getElementById("simulator-table").innerHTML = rows.map(([label, baseValue, scenarioValue, type]) => {
+        const diff = scenarioValue - baseValue;
+        return `
+            <tr>
+                <td>${label}</td>
+                <td>${formatSimulatorValue(baseValue, type)}</td>
+                <td>${formatSimulatorValue(scenarioValue, type)}</td>
+                <td class="${diff > 0 ? "good" : diff < 0 ? "bad" : ""}">${formatSimulatorDiff(diff, type)}</td>
+            </tr>`;
+    }).join("");
+
+    document.querySelectorAll("[data-sim-control]").forEach(input => {
+        document.getElementById(`${input.id}-value`).textContent = formatInputValue(Number(input.value), input.dataset.suffix || "");
+    });
+}
+
+function budgetScenario(rawBase) {
+    const base = {
+        ...rawBase,
+        resultTotal: rawBase.resultPerCapita * rawBase.population,
+        debtTotal: rawBase.debtPerCapita * rawBase.population,
+        longDebtTotal: rawBase.longDebtPerCapita * rawBase.population,
+        taxRevenueTotal: rawBase.taxRevenuePerCapita * rawBase.population,
+        operatingCostTotal: rawBase.operatingCostPerCapita * rawBase.population,
+        investmentTotal: rawBase.netInvestmentPerCapita * rawBase.population
+    };
+    Object.assign(rawBase, base);
+
+    const populationChange = simNumber("populationChange");
+    const workingResidents = simNumber("workingResidents");
+    const age0to19Change = simNumber("age0to19Change");
+    const age80plusChange = simNumber("age80plusChange");
+    const taxBaseFactor = 1 + simNumber("taxBaseChange") / 100;
+    const taxRate = Math.max(0, base.taxRate + simNumber("taxRateChange"));
+    const stateGrantPerCapita = simNumber("stateGrantChange");
+    const costChange = simNumber("costChange");
+    const investmentPerCapita = simNumber("investmentLevel");
+    const population = Math.max(1, base.population + populationChange);
+    const workingResidentsFactor = base.assumedWorkingResidents > 0 ? workingResidents / base.assumedWorkingResidents : 1;
+    const taxBasePerCapita = Math.max(0, base.taxBasePerCapita * taxBaseFactor * workingResidentsFactor);
+    const taxRevenuePerCapita = taxBasePerCapita * (taxRate / 100);
+    const ageCostEffect = age0to19Change * 95000 + age80plusChange * 230000;
+    const operatingCostPerCapita = Math.max(0, base.operatingCostPerCapita + costChange);
+    const taxRevenueTotal = taxRevenuePerCapita * population;
+    const stateGrantTotal = stateGrantPerCapita * population;
+    const operatingCostTotal = operatingCostPerCapita * population + ageCostEffect;
+    const resultTotal = taxRevenueTotal + stateGrantTotal - operatingCostTotal;
+    const resultPerCapita = resultTotal / population;
+    const investmentTotal = investmentPerCapita * population;
+    const investmentChange = investmentTotal - base.investmentTotal;
+    const debtTotal = Math.max(0, base.debtTotal + Math.max(0, investmentChange) - Math.max(0, resultTotal));
+    const longDebtTotal = Math.max(0, base.longDebtTotal + Math.max(0, investmentChange * 0.7));
+
+    return {
+        population,
+        workingResidents,
+        taxRate,
+        taxBasePerCapita,
+        taxRevenueTotal,
+        stateGrantTotal,
+        operatingCostTotal,
+        ageCostEffect,
+        resultTotal,
+        resultPerCapita,
+        investmentTotal,
+        debtTotal,
+        longDebtTotal
+    };
+}
+
+function simNumber(id) {
+    return Number(document.getElementById(id)?.value || 0);
+}
+
+function formatInputValue(value, suffix) {
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value.toLocaleString("sv-SE", { maximumFractionDigits: 1 })}${suffix}`;
+}
+
+function formatInteger(value) {
+    return Math.round(value).toLocaleString("sv-SE");
+}
+
+function formatCurrency(value, suffix = " kr") {
+    return `${Math.round(value).toLocaleString("sv-SE")}${suffix}`;
+}
+
+function formatMillion(value) {
+    return `${(value / 1000000).toLocaleString("sv-SE", { maximumFractionDigits: 1 })} mnkr`;
+}
+
+function formatSigned(value, suffix) {
+    const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+    return `${sign}${Math.round(Math.abs(value)).toLocaleString("sv-SE")}${suffix}`;
+}
+
+function formatSignedCurrency(value, suffix) {
+    const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+    return `${sign}${Math.round(Math.abs(value)).toLocaleString("sv-SE")}${suffix}`;
+}
+
+function formatSignedMillion(value) {
+    const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+    return `${sign}${(Math.abs(value) / 1000000).toLocaleString("sv-SE", { maximumFractionDigits: 1 })} mnkr`;
+}
+
+function formatSimulatorValue(value, type) {
+    if (type === "mnkr") return formatMillion(value);
+    if (type === "percent") return `${value.toLocaleString("sv-SE", { maximumFractionDigits: 2 })}%`;
+    if (type === "krinv") return formatCurrency(value, " kr/inv");
+    if (type === "persons") return `${formatInteger(value)} personer`;
+    return formatInteger(value);
+}
+
+function formatSimulatorDiff(value, type) {
+    if (type === "mnkr") return formatSignedMillion(value);
+    if (type === "percent") return `${value > 0 ? "+" : value < 0 ? "-" : ""}${Math.abs(value).toLocaleString("sv-SE", { maximumFractionDigits: 2 })} procentenheter`;
+    if (type === "krinv") return formatSignedCurrency(value, " kr/inv");
+    if (type === "persons") return formatSigned(value, " personer");
+    return formatSigned(value, "");
+}
+
+function resultTone(value) {
+    return value > 0 ? "good" : value < 0 ? "bad" : "";
+}
+
+function debtTone(value) {
+    return value > 0 ? "bad" : value < 0 ? "good" : "";
 }
 
 async function renderVehiclesTab() {
@@ -2289,7 +2870,8 @@ function vehicleNumberCardSkeleton(id, title, source) {
             <div class="value">Laddar...</div>
             <div class="meta delta"></div>
             <div class="compare-line">
-                <div class="mini"><div class="mini-label">Kronobergs län</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Höglandet</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Jönköpings län</div><div class="mini-value">-</div></div>
                 <div class="mini"><div class="mini-label">Riket</div><div class="mini-value">-</div></div>
             </div>
         </article>`;
@@ -2316,7 +2898,7 @@ async function loadVehicleTrafficData() {
         vehicleTrafficCache = embeddedVehicleTrafficData;
         return vehicleTrafficCache;
     }
-    const scbRegions = [...countyMunicipalityIds, "07", "00"];
+    const scbRegions = [...countyMunicipalityIds, "06", "00"];
     const response = await fetch(`${SCB_VEHICLE_API_BASE}/FordonTrafik`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2334,7 +2916,7 @@ async function loadVehicleTrafficData() {
     const regions = {};
     (json.data || []).forEach(row => {
         const [scbRegion, typeId, year] = row.key || [];
-        const regionId = scbRegion === "07" ? countyId : scbRegion === "00" ? countryId : scbRegion;
+        const regionId = scbRegion === "06" ? countyId : scbRegion === "00" ? countryId : scbRegion;
         const value = Number(String(row.values?.[0] || "").replace(/\s/g, ""));
         if (!regionId || !typeId || !year || !Number.isFinite(value)) return;
         regions[regionId] ??= {};
@@ -2362,6 +2944,7 @@ function renderVehicleGeoCards(traffic, populationBundle) {
         vehicleTrafficValue(traffic, selected.id, "total", previousYear),
         year,
         previousYear,
+        vehicleTrafficValue(traffic, "highland", "total", year),
         vehicleTrafficValue(traffic, countyId, "total", year),
         vehicleTrafficValue(traffic, countryId, "total", year),
         "Avser alla fordonsslag i trafik"
@@ -2372,15 +2955,18 @@ function renderVehicleGeoCards(traffic, populationBundle) {
         vehicleTrafficValue(traffic, selected.id, "10", previousYear),
         year,
         previousYear,
+        vehicleTrafficValue(traffic, "highland", "10", year),
         vehicleTrafficValue(traffic, countyId, "10", year),
         vehicleTrafficValue(traffic, countryId, "10", year),
         "Avser personbilar i trafik"
     );
 
     const cars = vehicleTrafficValue(traffic, selected.id, "10", year);
+    const highlandCars = vehicleTrafficValue(traffic, "highland", "10", year);
     const countyCars = vehicleTrafficValue(traffic, countyId, "10", year);
     const countryCars = vehicleTrafficValue(traffic, countryId, "10", year);
     const carsPer1000 = Number.isFinite(cars) && population?.value ? (cars / population.value) * 1000 : null;
+    const highlandPopulation = populationBundle?.highland?.latest?.value;
     const countyPopulation = populationBundle?.county?.latest?.value;
     const countryPopulation = populationBundle?.byId?.[countryId]?.latest?.value;
     updateVehicleNumberCard(
@@ -2389,6 +2975,7 @@ function renderVehicleGeoCards(traffic, populationBundle) {
         null,
         year,
         null,
+        Number.isFinite(highlandCars) && highlandPopulation ? (highlandCars / highlandPopulation) * 1000 : null,
         Number.isFinite(countyCars) && countyPopulation ? (countyCars / countyPopulation) * 1000 : null,
         Number.isFinite(countryCars) && countryPopulation ? (countryCars / countryPopulation) * 1000 : null,
         `Befolkning från Kolada ${formatMetricPeriod(population?.period, { afMonthlyKey: false })}`,
@@ -2396,7 +2983,7 @@ function renderVehicleGeoCards(traffic, populationBundle) {
     );
 }
 
-function updateVehicleNumberCard(id, value, previous, year, previousYear, countyValue, countryValue, meta, options = {}) {
+function updateVehicleNumberCard(id, value, previous, year, previousYear, highlandValue, countyValue, countryValue, meta, options = {}) {
     const card = document.getElementById(`${id}-card`);
     if (!card) return;
     const format = (item) => Number.isFinite(item)
@@ -2410,8 +2997,9 @@ function updateVehicleNumberCard(id, value, previous, year, previousYear, county
         : `${formatDelta(delta, { format: "integer", suffix: options.suffix || "" })} från ${previousYear} · mätår ${year}`;
     deltaEl.className = "meta delta";
     const minis = card.querySelectorAll(".mini-value");
-    minis[0].textContent = format(countyValue);
-    minis[1].textContent = format(countryValue);
+    minis[0].textContent = format(highlandValue);
+    minis[1].textContent = format(countyValue);
+    minis[2].textContent = format(countryValue);
 }
 
 function renderVehicleComparison(traffic, typeId) {
@@ -2446,7 +3034,8 @@ function vehicleComparisonRows(traffic, typeId) {
     return [
         vehicleRowFor(selected.name, selected.id, traffic, typeId, colors.selected),
         ...municipalityRows,
-        vehicleRowFor("Kronobergs län", countyId, traffic, typeId, colors.county),
+        vehicleRowFor("Höglandet", "highland", traffic, typeId, colors.highland),
+        vehicleRowFor("Jönköpings län", countyId, traffic, typeId, colors.county),
         vehicleRowFor("Riket", countryId, traffic, typeId, colors.country)
     ];
 }
@@ -2464,6 +3053,10 @@ function vehicleRowFor(title, regionId, traffic, typeId, color) {
 }
 
 function vehicleTrafficValue(traffic, regionId, typeId, year) {
+    if (regionId === "highland") {
+        const values = highlandIds.map(id => vehicleTrafficValue(traffic, id, typeId, year)).filter(Number.isFinite);
+        return values.length ? values.reduce((sum, item) => sum + item, 0) : null;
+    }
     const row = traffic.regions?.[regionId]?.[year];
     if (!row) return null;
     if (typeId === "total") {
@@ -2483,7 +3076,7 @@ async function renderMetricMapTab() {
     setStatus("Laddar karta...");
     main.innerHTML = `
         <section class="tab-panel active" id="map">
-            <div class="info">Välj tema och nyckeltal för att se hur länets kommuner skiljer sig geografiskt. Kartan är en riktig OpenStreetMap-karta med kommunmarkörer.</div>
+            <div class="info">Välj tema och nyckeltal för att se hur länets kommuner skiljer sig geografiskt. Kartan är en punktkarta med kommunmarkörer, inte kommungränser.</div>
             <article class="comparison">
                 <div class="map-toolbar">
                     <div class="field">
@@ -2608,7 +3201,11 @@ async function renderMetricMapData() {
                     <span class="map-summary-value">${selectedRow?.rank ? `${selectedRow.rank} av ${rows.length}` : "-"}</span>
                 </div>
                 <div class="map-summary-row">
-                    <span class="map-summary-label">Kronobergs län</span>
+                    <span class="map-summary-label">Höglandet</span>
+                    <span class="map-summary-value">${formatMaybe(bundle.highland.latest?.value, metricDef)}</span>
+                </div>
+                <div class="map-summary-row">
+                    <span class="map-summary-label">Jönköpings län</span>
                     <span class="map-summary-value">${formatMaybe(bundle.county.latest?.value, metricDef)}</span>
                 </div>
                 <div class="map-summary-row">
@@ -2670,7 +3267,7 @@ function renderMetricMap(rows, metricDef) {
     metricLeafletMap = L.map(mapHost, {
         scrollWheelZoom: true,
         zoomControl: true,
-        preferCanvas: false
+        preferCanvas: true
     });
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -2691,11 +3288,6 @@ function renderMetricMap(rows, metricDef) {
             fillOpacity: 0.9
         }).addTo(metricLeafletMap);
         marker.bindPopup(metricMapPopup(row, metricDef));
-        marker.bindTooltip(`${row.title}: ${formatMaybe(row.latest?.value, metricDef)}`, {
-            direction: "top",
-            offset: [0, -8],
-            opacity: 0.92
-        });
         bounds.extend(row.coords);
     });
 
@@ -2712,8 +3304,6 @@ function renderMetricMap(rows, metricDef) {
         metricResizeObserver.observe(mapHost);
     }
 }
-
-
 
 function metricMapPopup(row, metricDef) {
     return `
@@ -2763,6 +3353,264 @@ function exportCurrentView() {
         document.title = originalTitle;
         setStatus("Export klar att spara via utskriftsdialogen");
     }, 60);
+}
+
+function trafficSafetyCameraSection(tabId) {
+    return `
+        <article class="comparison" id="${tabId}-atk">
+            <div class="comparison-head">
+                <div>
+                    <h2 class="comparison-title">Trafiksäkerhetskameror</h2>
+                    <div class="meta">Kommunvy med Trafikverkets öppna WMS-lager för ATK-mätplatser och ATK-sträckor.</div>
+                </div>
+            </div>
+            <div class="atk-controls">
+                <div class="field">
+                    <label for="${tabId}-atk-municipality">Kommun</label>
+                    <select id="${tabId}-atk-municipality">
+                        ${municipalities.map(item => `<option value="${item.id}">${item.name}</option>`).join("")}
+                    </select>
+                </div>
+                <button class="secondary-button" type="button" id="${tabId}-atk-follow">Visa huvudkommun</button>
+            </div>
+            <div class="atk-summary-grid">
+                <div class="atk-mini-stat">
+                    <strong id="${tabId}-atk-selected">${escapeHtml(currentMunicipality().name)}</strong>
+                    <span>Vald kommunvy</span>
+                </div>
+                <div class="atk-mini-stat">
+                    <strong>Livekarta</strong>
+                    <span>Placeringar och sträckor hämtas som kartlager</span>
+                </div>
+                <div class="atk-mini-stat">
+                    <strong>Klickbar</strong>
+                    <span>Klicka i kartan för objektinformation när WMS svarar</span>
+                </div>
+            </div>
+            <div class="atk-layout">
+                <article class="atk-map" id="${tabId}-atk-map">
+                    <div class="loading">Laddar Trafikverkets ATK-lager...</div>
+                </article>
+                <aside class="atk-facts">
+                    <div class="atk-fact">
+                        <strong>Datakälla</strong>
+                        Trafikverkets Lastkajen/NetInfo, öppna lager från STVDB.
+                    </div>
+                    <div class="atk-fact">
+                        <strong>Lager i kartan</strong>
+                        <span class="atk-layer-pill">ATK-Mätplats</span>
+                        <span class="atk-layer-pill route">ATK Sträcka</span>
+                    </div>
+                    <div class="atk-fact">
+                        <strong>Kommunnivå</strong>
+                        Kartan zoomar till vald kommun och visar de ATK-objekt som finns i utsnittet. Exakta summeringar per kommun kräver fortfarande ett beställt Lastkajen-uttag, eftersom WMS-lagret levererar kartbild snarare än färdig tabell.
+                    </div>
+                    <div class="atk-feature-info" id="${tabId}-atk-feature-info">
+                        Klicka på en kamera eller ATK-sträcka i kartan för att försöka läsa objektinformation från karttjänsten.
+                    </div>
+                    <div class="atk-fact">
+                        <strong>Tekniska lager</strong>
+                        WMS: <code>NetInfo_1_8</code><br>
+                        Punkter: <code>ATK_Matplats</code><br>
+                        Sträckor: <code>ATK_Stracka</code>
+                    </div>
+                    <div class="meta">
+                        Källa: <a href="https://lastkajen.trafikverket.se/" target="_blank" rel="noopener">Trafikverkets Lastkajen</a>.
+                    </div>
+                </aside>
+            </div>
+        </article>`;
+}
+
+function renderTrafficSafetyCameraMap(tabId) {
+    const mapEl = document.getElementById(`${tabId}-atk-map`);
+    if (!mapEl) return;
+    if (atkResizeObserver) {
+        atkResizeObserver.disconnect();
+        atkResizeObserver = null;
+    }
+    if (atkLeafletMap) {
+        atkLeafletMap.remove();
+        atkLeafletMap = null;
+    }
+    atkMunicipalityLayer = null;
+    atkMunicipalityMarker = null;
+    if (typeof L === "undefined") {
+        mapEl.innerHTML = `<div class="loading error">Kartan kunde inte laddas.</div>`;
+        return;
+    }
+
+    mapEl.innerHTML = `<div class="atk-map-host" id="${tabId}-atk-leaflet"></div>`;
+    const mapHost = document.getElementById(`${tabId}-atk-leaflet`);
+    atkLeafletMap = L.map(mapHost, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+        preferCanvas: true
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        minZoom: 3,
+        detectRetina: true,
+        attribution: "&copy; OpenStreetMap"
+    }).addTo(atkLeafletMap);
+
+    const wmsUrl = "https://geo-netinfo.trafikverket.se/MapService/wms.axd/NetInfo_1_8";
+    const routeLayer = L.tileLayer.wms(wmsUrl, {
+        layers: "ATK_Stracka",
+        styles: "Kartprofil",
+        format: "image/png",
+        transparent: true,
+        version: "1.3.0",
+        opacity: 0.78,
+        attribution: "Trafikverket NetInfo"
+    }).addTo(atkLeafletMap);
+    const pointLayer = L.tileLayer.wms(wmsUrl, {
+        layers: "ATK_Matplats",
+        styles: "Kartprofil",
+        format: "image/png",
+        transparent: true,
+        version: "1.3.0",
+        opacity: 0.95,
+        attribution: "Trafikverket NetInfo"
+    }).addTo(atkLeafletMap);
+
+    L.control.layers(null, {
+        "ATK-mätplatser": pointLayer,
+        "ATK-sträckor": routeLayer
+    }, { collapsed: false }).addTo(atkLeafletMap);
+
+    const municipalitySelect = document.getElementById(`${tabId}-atk-municipality`);
+    const followButton = document.getElementById(`${tabId}-atk-follow`);
+    if (municipalitySelect) {
+        municipalitySelect.value = selectedMunicipality;
+        municipalitySelect.addEventListener("change", () => fitAtkMunicipality(tabId, municipalitySelect.value));
+    }
+    followButton?.addEventListener("click", () => {
+        if (municipalitySelect) municipalitySelect.value = selectedMunicipality;
+        fitAtkMunicipality(tabId, selectedMunicipality);
+    });
+    atkLeafletMap.on("click", event => renderAtkFeatureInfo(tabId, event));
+
+    const fitMap = () => {
+        if (!atkLeafletMap) return;
+        atkLeafletMap.invalidateSize({ pan: false });
+        fitAtkMunicipality(tabId, municipalitySelect?.value || selectedMunicipality);
+    };
+    window.requestAnimationFrame(fitMap);
+    window.setTimeout(fitMap, 180);
+    window.setTimeout(fitMap, 520);
+    if (typeof ResizeObserver !== "undefined") {
+        atkResizeObserver = new ResizeObserver(fitMap);
+        atkResizeObserver.observe(mapEl);
+    }
+}
+
+function fitAtkMunicipality(tabId, municipalityId) {
+    if (!atkLeafletMap || typeof L === "undefined") return;
+    const bounds = L.latLngBounds(atkBoundsForMunicipality(municipalityId));
+    if (!bounds.isValid()) return;
+
+    if (atkMunicipalityLayer) {
+        atkLeafletMap.removeLayer(atkMunicipalityLayer);
+        atkMunicipalityLayer = null;
+    }
+    if (atkMunicipalityMarker) {
+        atkLeafletMap.removeLayer(atkMunicipalityMarker);
+        atkMunicipalityMarker = null;
+    }
+
+    atkMunicipalityLayer = L.rectangle(bounds, {
+        color: colors.selected,
+        weight: 2,
+        fillColor: "#b9e1f2",
+        fillOpacity: 0.08,
+        dashArray: "6 5"
+    }).addTo(atkLeafletMap);
+
+    const center = municipalityCoordinates[municipalityId];
+    if (center) {
+        atkMunicipalityMarker = L.circleMarker(center, {
+            radius: 6,
+            color: "#ffffff",
+            weight: 2,
+            fillColor: colors.selected,
+            fillOpacity: 0.95
+        }).addTo(atkLeafletMap);
+        atkMunicipalityMarker.bindPopup(`<strong>${escapeHtml(municipalityName(municipalityId))}</strong><br>Kommunvy för ATK-kartan`);
+    }
+
+    atkLeafletMap.fitBounds(bounds, { padding: [36, 36], maxZoom: 11 });
+    const selectedEl = document.getElementById(`${tabId}-atk-selected`);
+    if (selectedEl) selectedEl.textContent = municipalityName(municipalityId);
+}
+
+function atkBoundsForMunicipality(municipalityId) {
+    if (municipalityBounds[municipalityId]) return municipalityBounds[municipalityId];
+    const center = municipalityCoordinates[municipalityId] || municipalityCoordinates[DEFAULT_MUNICIPALITY];
+    return [
+        [center[0] - 0.18, center[1] - 0.22],
+        [center[0] + 0.18, center[1] + 0.22]
+    ];
+}
+
+function municipalityName(municipalityId) {
+    return municipalities.find(item => item.id === municipalityId)?.name || municipalityId;
+}
+
+async function renderAtkFeatureInfo(tabId, event) {
+    const infoEl = document.getElementById(`${tabId}-atk-feature-info`);
+    if (!infoEl || !atkLeafletMap) return;
+    infoEl.innerHTML = "Läser objektinformation från Trafikverkets WMS...";
+    try {
+        const features = await fetchAtkFeatureInfo(event);
+        if (!features.length) {
+            infoEl.innerHTML = "Inget ATK-objekt hittades precis där du klickade. Prova att klicka mitt på en kamerasymbol eller sträcka.";
+            return;
+        }
+        infoEl.innerHTML = features.slice(0, 4).map(feature => {
+            const props = feature.properties || {};
+            const rows = Object.entries(props)
+                .filter(([, value]) => value !== null && value !== undefined && `${value}`.trim() !== "")
+                .slice(0, 6)
+                .map(([key, value]) => `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(`${value}`)}</div>`)
+                .join("");
+            return `<div>${rows || "<strong>ATK-objekt</strong> hittades, men utan läsbara attribut."}</div>`;
+        }).join("<hr>");
+    } catch (error) {
+        infoEl.innerHTML = "Kunde inte läsa objektinformation direkt från WMS i webbläsaren. Kartlagret visas ändå korrekt.";
+    }
+}
+
+async function fetchAtkFeatureInfo(event) {
+    const bounds = atkLeafletMap.getBounds();
+    const size = atkLeafletMap.getSize();
+    const point = atkLeafletMap.latLngToContainerPoint(event.latlng);
+    const params = new URLSearchParams({
+        SERVICE: "WMS",
+        VERSION: "1.1.1",
+        REQUEST: "GetFeatureInfo",
+        LAYERS: "ATK_Matplats,ATK_Stracka",
+        QUERY_LAYERS: "ATK_Matplats,ATK_Stracka",
+        STYLES: "Kartprofil,Kartprofil",
+        SRS: "EPSG:4326",
+        BBOX: [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth()
+        ].join(","),
+        WIDTH: Math.round(size.x).toString(),
+        HEIGHT: Math.round(size.y).toString(),
+        X: Math.round(point.x).toString(),
+        Y: Math.round(point.y).toString(),
+        FEATURE_COUNT: "10",
+        INFO_FORMAT: "application/json"
+    });
+    const response = await fetch(`https://geo-netinfo.trafikverket.se/MapService/wms.axd/NetInfo_1_8?${params.toString()}`);
+    if (!response.ok) throw new Error(`WMS ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data.features) ? data.features : [];
 }
 
 function commutingFlowSection(tabId) {
@@ -2823,12 +3671,11 @@ function dependencyRatioSection(tabId) {
         </article>`;
 }
 
-
 function populationShareSection(tabId) {
     return `
         <article class="comparison" id="${tabId}-population-shares">
             <div>
-                <h2 class="comparison-title">Kronobergskommunernas andel av befolkningen</h2>
+                <h2 class="comparison-title">Höglandskommunernas andel av befolkningen</h2>
                 <div class="meta" id="${tabId}-population-share-period">Laddar...</div>
             </div>
             <table>
@@ -2836,19 +3683,18 @@ function populationShareSection(tabId) {
                     <tr>
                         <th>Kommun/område</th>
                         <th>Invånare</th>
-                        <th>Andel av Kronobergs län</th>
+                        <th>Andel av Höglandet</th>
+                        <th>Andel av Jönköpings län</th>
                         <th>Andel av landet</th>
                     </tr>
                 </thead>
                 <tbody id="${tabId}-population-share-table">
-                    <tr><td colspan="4">Laddar...</td></tr>
+                    <tr><td colspan="5">Laddar...</td></tr>
                 </tbody>
             </table>
             <div class="meta">Kommun- och länsbefolkning: SCB via Kolada, KPI N01951. Riket: SCB:s senaste nyckeltal för maj 2026, 10 608 128 invånare.</div>
         </article>`;
 }
-
-
 
 function renderDependencyRatio(tabId, bundles) {
     const tbody = document.getElementById(`${tabId}-dependency-ratio-table`);
@@ -2903,7 +3749,8 @@ function renderDependencyRatio(tabId, bundles) {
                 id === selected.id
             );
         }),
-        rowFor("Kronobergs län", "county", youngBundle.county.latest, workingBundle.county.latest, olderBundle.county.latest, false, true),
+        rowFor("Höglandet", "highland", youngBundle.highland.latest, workingBundle.highland.latest, olderBundle.highland.latest, false, true),
+        rowFor("Jönköpings län", "county", youngBundle.county.latest, workingBundle.county.latest, olderBundle.county.latest, false, true),
         rowFor("Riket", countryId, countryYoung?.latest, countryWorking?.latest, countryOlder?.latest, false, true)
     ];
 
@@ -3087,7 +3934,6 @@ function commutingPopup(row) {
         Netto: ${net}`;
 }
 
-
 function renderPopulationShares(tabId, populationBundle) {
     const tbody = document.getElementById(`${tabId}-population-share-table`);
     const periodEl = document.getElementById(`${tabId}-population-share-period`);
@@ -3095,57 +3941,66 @@ function renderPopulationShares(tabId, populationBundle) {
 
     const populationFor = id => populationBundle.byId[id]?.latest?.value;
     const periodFor = id => populationBundle.byId[id]?.latest?.period;
+    const highlandPopulation = populationBundle.highland.latest?.value;
     const countyPopulation = populationBundle.county.latest?.value;
     const share = (part, whole) => Number.isFinite(part) && Number.isFinite(whole) && whole > 0
         ? `${((part / whole) * 100).toLocaleString("sv-SE", { maximumFractionDigits: 1 })}%`
         : "-";
 
     const rows = [
-        ...countyMunicipalityIds.map(id => {
+        ...highlandIds.map(id => {
             const municipality = municipalities.find(item => item.id === id);
             const population = populationFor(id);
             return {
                 title: municipality?.name || id,
                 population,
+                highlandShare: share(population, highlandPopulation),
                 countyShare: share(population, countyPopulation),
                 countryShare: share(population, NATIONAL_POPULATION_MAY_2026),
                 selected: id === selectedMunicipality
             };
         }),
         {
-            title: "Kronobergs län totalt",
+            title: "Höglandet totalt",
+            population: highlandPopulation,
+            highlandShare: "100%",
+            countyShare: share(highlandPopulation, countyPopulation),
+            countryShare: share(highlandPopulation, NATIONAL_POPULATION_MAY_2026),
+            total: true
+        },
+        {
+            title: "Jönköpings län totalt",
             population: countyPopulation,
-            countyShare: "100%",
+            highlandShare: "-",
+            countyShare: "-",
             countryShare: share(countyPopulation, NATIONAL_POPULATION_MAY_2026),
             total: true
         }
     ];
 
-    const period = periodFor(selectedMunicipality) || populationBundle.county.latest?.period || "";
-    periodEl.textContent = `Kommun/län: ${period || "-"}. Riket: maj 2026.`;
+    periodEl.textContent = `Kommun/län: ${periodFor(selectedMunicipality) || populationBundle.highland.latest?.period || "-"}. Riket: maj 2026.`;
     tbody.innerHTML = rows.map(row => `
         <tr class="${row.selected ? "selected-row" : row.total ? "summary-row" : ""}">
             <td>${escapeHtml(row.title)}</td>
             <td>${Number.isFinite(row.population) ? Math.round(row.population).toLocaleString("sv-SE") : "-"}</td>
+            <td>${row.highlandShare}</td>
             <td>${row.countyShare}</td>
             <td>${row.countryShare}</td>
         </tr>
     `).join("");
 }
 
-
-
 async function renderBathingWaterTab() {
     const main = document.getElementById("main");
     setStatus("Laddar badvatten...");
     main.innerHTML = `
         <section class="tab-panel active" id="bathing">
-            <div class="info">Badplatser och badvatten hämtas live från Havs- och vattenmyndigheten och filtreras på Kronobergs läns kommuner.</div>
+            <div class="info">Badplatser och badvatten hämtas live från Havs- och vattenmyndigheten och filtreras på Jönköpings läns kommuner.</div>
             <div class="bath-filter">
                 <div class="field">
                     <label for="bath-municipality">Visa</label>
                     <select id="bath-municipality">
-                        <option value="county">Hela Kronobergs län</option>
+                        <option value="county">Hela Jönköpings län</option>
                         ${countyMunicipalityIds.map(id => {
                             const item = municipalities.find(municipality => municipality.id === id);
                             return `<option value="${id}">${item.name}</option>`;
@@ -3289,7 +4144,7 @@ function renderBathingCards(items, filterId) {
         adviceCount.toLocaleString("sv-SE")
     ];
     const notes = [
-        filterId === "county" ? "Registrerade badplatser i Kronobergs län" : "Registrerade badplatser i vald kommun",
+        filterId === "county" ? "Registrerade badplatser i Jönköpings län" : "Registrerade badplatser i vald kommun",
         "Kommuner med minst en registrerad badplats",
         `Med badtemperaturprognos från HaV. EU-bad i urvalet: ${euCount.toLocaleString("sv-SE")}`,
         "Badplatser med aktiv avrådan i API:t"
@@ -3439,29 +4294,42 @@ function cardSkeleton(item) {
     return `
         <article class="card" id="card-${item.id}">
             <h3>${escapeHtml(item.title)}</h3>
-            <div class="meta">${escapeHtml(item.group)} · ${item.id}</div>
+            <div class="meta">${escapeHtml(item.sourceLabel || `${item.group} · ${item.id}`)}</div>
             <div class="value">Laddar...</div>
             <div class="meta delta"></div>
             <div class="compare-line">
-                <div class="mini"><div class="mini-label">Kronobergs län</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Höglandet</div><div class="mini-value">-</div></div>
+                <div class="mini"><div class="mini-label">Jönköpings län</div><div class="mini-value">-</div></div>
                 <div class="mini"><div class="mini-label">Riket</div><div class="mini-value">-</div></div>
             </div>
         </article>`;
 }
 
+function afMonthlySeriesFromSource(source, key) {
+    return (source?.[key] || []).map(point => ({ period: point.period, value: point.value }));
+}
 
-function afMonthlySeries(regionId, key) {
-    return afMonthlyUnemploymentData.regions?.[regionId]?.[key] || [];
+function afMonthlyWithLatest(id, series) {
+    return { id, series, latest: series.at(-1) || null, previous: series.at(-2) || null };
+}
+
+function afMonthlyRegionSeries(regionId, key) {
+    return afMonthlySeriesFromSource(afMonthlyUnemploymentData.regions[regionId], key);
+}
+
+function afMonthlyArea(areaId, key) {
+    return afMonthlyWithLatest(areaId, afMonthlySeriesFromSource(afMonthlyUnemploymentData.areas[areaId], key));
 }
 
 function loadAfMonthlyBundle(metricDef) {
-    const regionIds = [...new Set([selectedMunicipality, ...countyMunicipalityIds, countyId, countryId])];
-    const byId = Object.fromEntries(regionIds.map(id => {
-        const series = afMonthlySeries(id, metricDef.afMonthlyKey);
-        return [id, { id, series, latest: series.at(-1) || null, previous: series.at(-2) || null }];
-    }));
-    const county = byId[countyId]?.latest ? byId[countyId] : aggregateGroup("county", countyMunicipalityIds, metricDef, byId);
-    return { metric: metricDef, byId, county };
+    const regionIds = [...new Set([selectedMunicipality, ...highlandIds, ...countyMunicipalityIds, countyId, countryId])];
+    const byId = Object.fromEntries(regionIds.map(id => [id, afMonthlyWithLatest(id, afMonthlyRegionSeries(id, metricDef.afMonthlyKey))]));
+    return {
+        metric: metricDef,
+        byId,
+        highland: afMonthlyArea("highland", metricDef.afMonthlyKey),
+        county: byId[countyId]
+    };
 }
 
 async function loadMetricBundle(item) {
@@ -3473,11 +4341,12 @@ async function loadMetricBundle(item) {
         return bundle;
     }
 
-    const regionIds = [...new Set([selectedMunicipality, ...countyMunicipalityIds, countyId, countryId])];
+    const regionIds = [...new Set([selectedMunicipality, ...highlandIds, ...countyMunicipalityIds, countyId, countryId])];
     const data = await Promise.all(regionIds.map(id => loadRegionMetric(id, item)));
     const byId = Object.fromEntries(data.map(row => [row.id, row]));
+    const highland = aggregateHighland(item, byId);
     const county = byId[countyId]?.latest ? byId[countyId] : aggregateGroup("county", countyMunicipalityIds, item, byId);
-    const bundle = { metric: item, byId, county };
+    const bundle = { metric: item, byId, highland, county };
     metricCache.set(cacheKey, bundle);
     return bundle;
 }
@@ -3564,8 +4433,9 @@ function renderCard(tabId, bundle) {
     deltaEl.className = `meta delta ${tone(delta, bundle.metric)}`;
 
     const minis = card.querySelectorAll(".mini-value");
-    minis[0].textContent = formatMaybe(bundle.county.latest?.value, bundle.metric);
-    minis[1].textContent = formatMaybe(country?.latest?.value, bundle.metric);
+    minis[0].textContent = formatMaybe(bundle.highland.latest?.value, bundle.metric);
+    minis[1].textContent = formatMaybe(bundle.county.latest?.value, bundle.metric);
+    minis[2].textContent = formatMaybe(country?.latest?.value, bundle.metric);
 }
 
 async function renderComparison(tabId, metricDef) {
@@ -3720,7 +4590,8 @@ function comparisonRows(bundle) {
     return [
         rowFor(selected.name, selected.id, bundle.byId[selected.id], colors.selected),
         ...countyMunicipalities,
-        rowFor("Kronobergs län", "county", bundle.county, colors.county),
+        rowFor("Höglandet", "highland", bundle.highland, colors.highland),
+        rowFor("Jönköpings län", "county", bundle.county, colors.county),
         rowFor("Riket", countryId, bundle.byId[countryId], colors.country)
     ];
 }
