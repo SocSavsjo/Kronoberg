@@ -84,16 +84,21 @@
         font-size: 0.88rem;
     }
 
-    select, button {
+    select, button, input {
         font: inherit;
     }
 
-    select {
+    select, input[type="number"] {
         min-width: 250px;
         border: 1px solid #c9d4df;
         border-radius: 6px;
         background: white;
         padding: 10px 12px;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: var(--primary);
     }
 
     .status-pill {
@@ -204,6 +209,63 @@
 
     .delta.good { color: var(--good); }
     .delta.bad { color: var(--bad); }
+
+    .simulator-layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .simulator-controls {
+        display: grid;
+        gap: 12px;
+    }
+
+    .simulator-control {
+        display: grid;
+        gap: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .simulator-control:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .simulator-control-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: baseline;
+    }
+
+    .simulator-control-value {
+        color: var(--primary-dark);
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .simulator-summary {
+        display: grid;
+        gap: 14px;
+    }
+
+    .simulator-table th:first-child,
+    .simulator-table td:first-child {
+        text-align: left;
+    }
+
+    .simulator-table th:nth-child(2),
+    .simulator-table th:nth-child(3),
+    .simulator-table th:nth-child(4),
+    .simulator-table td:nth-child(2),
+    .simulator-table td:nth-child(3),
+    .simulator-table td:nth-child(4) {
+        text-align: right;
+        white-space: nowrap;
+    }
 
     .compare-line {
         display: grid;
@@ -844,6 +906,7 @@
 
     @media (max-width: 1200px) {
         .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .simulator-layout { grid-template-columns: 1fr; }
         .vehicle-split { grid-template-columns: 1fr; }
         .vehicle-card-grid, .vehicle-card-grid.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -858,7 +921,7 @@
         .compare-line { grid-template-columns: 1fr; }
         .bath-layout, .commute-layout, .metric-map-layout, .map-toolbar { grid-template-columns: 1fr; }
         .bath-map, .bath-map-host, .commute-map, .commute-map-host, .metric-map, .metric-map-host { min-height: 420px; height: 420px; }
-        select { min-width: 100%; width: 100%; }
+        select, input[type="number"] { min-width: 100%; width: 100%; }
         .field { width: 100%; }
     }
 
@@ -1357,6 +1420,7 @@
         <button class="tab-btn" type="button" data-tab="procurement">Upphandling</button>
         <button class="tab-btn" type="button" data-tab="bathing">Badvatten</button>
         <button class="tab-btn" type="button" data-tab="map">Karta</button>
+        <button class="tab-btn" type="button" data-tab="timesimulator">Tidssimulator</button>
     </nav>
 
     <main id="main"></main>
@@ -2105,6 +2169,10 @@ async function renderActiveTab(tabId = activeTabId()) {
         await renderMetricMapTab();
         return;
     }
+    if (tabId === "timesimulator") {
+        renderTimeSimulatorTab();
+        return;
+    }
     if (tabId === "procurement") {
         renderProcurementTab();
         return;
@@ -2179,6 +2247,134 @@ async function renderActiveTab(tabId = activeTabId()) {
             setStatus("Kunde inte ladda alla värden");
         }
     }
+}
+
+function renderTimeSimulatorTab() {
+    const main = document.getElementById("main");
+    setStatus("Tidssimulator laddad");
+    main.innerHTML = `
+        <section class="tab-panel active" id="timesimulator">
+            <div class="info">Detta är en simulator för att räkna på tid och kostnader, till exempel om man vill se effekten av långsammare datorer, inloggningar i system eller andra återkommande moment i vardagen.</div>
+            <div class="simulator-layout">
+                <article class="comparison">
+                    <h2 class="comparison-title">Antaganden</h2>
+                    <div class="meta">Arbetsdagar räknas med 7,5 timmar per dag. Månadslönen multipliceras med 1,4 för sociala avgifter och räknas om till timkostnad med 160 timmar per månad.</div>
+                    <div class="simulator-controls">
+                        ${timeSimulatorInput("timeMinutes", "Minuter per dag", 0, 1440, 1, 10, " min")}
+                        ${timeSimulatorInput("timeDays", "Antal dagar", 1, 365, 1, 120, " dagar")}
+                        ${timeSimulatorInput("timeEmployees", "Antal medarbetare", 1, 10000, 1, 25, " medarbetare")}
+                        ${timeSimulatorInput("timeMonthlySalary", "Månadslön", 0, 100000, 500, 35000, " kr/mån", "range", "(månadslön multipliceras med 1,4 för sociala avgifter)")}
+                    </div>
+                </article>
+                <div class="simulator-summary">
+                    <div class="kpi-grid" id="time-simulator-cards"></div>
+                    <article class="comparison">
+                        <h2 class="comparison-title">Beräkning</h2>
+                        <table class="simulator-table">
+                            <thead>
+                                <tr>
+                                    <th>Mått</th>
+                                    <th>Värde</th>
+                                    <th>Omräkning</th>
+                                    <th>Kommentar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="time-simulator-table"></tbody>
+                        </table>
+                    </article>
+                </div>
+            </div>
+        </section>`;
+    document.querySelectorAll("[data-time-control]").forEach(input => {
+        input.addEventListener("input", updateTimeSimulator);
+    });
+    updateTimeSimulator();
+}
+
+function timeSimulatorInput(id, label, min, max, step, value, suffix, type = "number", note = "") {
+    return `
+        <div class="simulator-control">
+            <div class="simulator-control-row">
+                <label for="${id}">${label}</label>
+                <span class="simulator-control-value" id="${id}-value"></span>
+            </div>
+            ${note ? `<div class="meta">${escapeHtml(note)}</div>` : ""}
+            <input id="${id}" data-time-control type="${type}" min="${min}" max="${max}" step="${step}" value="${value}" data-suffix="${escapeHtml(suffix)}">
+        </div>`;
+}
+
+function updateTimeSimulator() {
+    const minutesPerDay = clampTimeValue("timeMinutes");
+    const days = clampTimeValue("timeDays");
+    const employees = clampTimeValue("timeEmployees");
+    const monthlySalary = clampTimeValue("timeMonthlySalary");
+    const hourlyCost = monthlySalary * 1.4 / 160;
+    const totalMinutes = minutesPerDay * days * employees;
+    const totalHours = totalMinutes / 60;
+    const workDays = totalHours / 7.5;
+    const fullYearEquivalents = totalHours / 1600;
+    const totalCost = totalHours * hourlyCost;
+
+    document.querySelectorAll("[data-time-control]").forEach(input => {
+        document.getElementById(`${input.id}-value`).textContent = `${Number(input.value).toLocaleString("sv-SE")}${input.dataset.suffix || ""}`;
+    });
+
+    const cards = [
+        ["Totalt minuter", formatTimeInteger(totalMinutes), `${formatTimeInteger(minutesPerDay)} × ${formatTimeInteger(days)} × ${formatTimeInteger(employees)}`],
+        ["Totalt timmar", formatTimeDecimal(totalHours), "minuter / 60"],
+        ["Arbetsdagar", formatTimeDecimal(workDays), "7,5 tim/dag"],
+        ["Kostnad/värde", formatTimeCurrency(totalCost), `${formatTimeInteger(monthlySalary)} kr/mån × 1,4`]
+    ];
+
+    document.getElementById("time-simulator-cards").innerHTML = cards.map(([title, value, meta]) => `
+        <article class="card">
+            <h3>${title}</h3>
+            <div class="value">${value}</div>
+            <div class="meta">${meta}</div>
+        </article>
+    `).join("");
+
+    const rows = [
+        ["Minuter per dag", formatTimeInteger(minutesPerDay), "-", "Per medarbetare"],
+        ["Dagar", formatTimeInteger(days), "Max 365", "Periodens längd"],
+        ["Medarbetare", formatTimeInteger(employees), "-", "Antal som omfattas"],
+        ["Månadslön", formatTimeCurrency(monthlySalary, " kr/mån"), "× 1,4", "Sociala avgifter ingår i timkostnaden"],
+        ["Timkostnad", formatTimeCurrency(hourlyCost, " kr/tim"), "månadslön × 1,4 / 160", "Schablon för kostnad eller frigjort värde"],
+        ["Total tid", `${formatTimeInteger(totalMinutes)} minuter`, `${formatTimeDecimal(totalHours)} timmar`, "Minuter × dagar × medarbetare"],
+        ["Motsvarar", `${formatTimeDecimal(workDays)} arbetsdagar`, `${formatTimeDecimal(fullYearEquivalents)} årsarbetare`, "Schablon för planering"],
+        ["Ekonomisk effekt", formatTimeCurrency(totalCost), `${formatTimeDecimal(totalHours)} timmar × ${formatTimeCurrency(hourlyCost, " kr/tim")}`, "Visar kostnad eller möjlig frigjord arbetstid"]
+    ];
+
+    document.getElementById("time-simulator-table").innerHTML = rows.map(([label, value, conversion, note]) => `
+        <tr>
+            <td>${label}</td>
+            <td>${value}</td>
+            <td>${conversion}</td>
+            <td>${note}</td>
+        </tr>
+    `).join("");
+}
+
+function clampTimeValue(id) {
+    const input = document.getElementById(id);
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const parsed = Number(input.value);
+    const value = Math.min(max, Math.max(min, Number.isFinite(parsed) ? parsed : min));
+    if (String(value) !== input.value) input.value = value;
+    return value;
+}
+
+function formatTimeInteger(value) {
+    return Math.round(value).toLocaleString("sv-SE");
+}
+
+function formatTimeDecimal(value) {
+    return value.toLocaleString("sv-SE", { maximumFractionDigits: 1 });
+}
+
+function formatTimeCurrency(value, suffix = " kr") {
+    return `${Math.round(value).toLocaleString("sv-SE")}${suffix}`;
 }
 
 async function renderVehiclesTab() {
